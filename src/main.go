@@ -1,9 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"rpc_controller"
+)
 
 func main() {
 
-	fmt.Println("Cgroup resource schedule")
-	
+	rpc_controller.Rpc{}.RpcRegister()
+
 }
