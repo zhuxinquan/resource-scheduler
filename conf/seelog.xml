@@ -1,22 +1,25 @@
 <seelog>
-    <outputs formatid="http">
+    <outputs formatid="main">
+        <buffered size="1000" flushperiod="100">
+            <rollingfile type="date" filename="log/main.log" datepattern="2006010215" maxrolls="30"/>
+        </buffered>
         <filter levels="debug,info,error,critical">
             <console />
         </filter>
         <filter levels="debug">
-            <rollingfile formatid="http" type="date" filename="log/debug.log" datepattern="2006010215" maxrolls="14" />
+            <rollingfile formatid="main" type="date" filename="log/debug.log" datepattern="2006010215" maxrolls="14" />
         </filter>
         <filter levels="info">
-            <rollingfile formatid="http" type="date" filename="log/info.log" datepattern="2006010215" maxrolls="14" />
+            <rollingfile formatid="main" type="date" filename="log/info.log" datepattern="2006010215" maxrolls="14" />
         </filter>
         <filter levels="error">
-            <rollingfile formatid="http" type="date" filename="log/error.log" datepattern="2006010215" maxrolls="14" />
+            <rollingfile formatid="main" type="date" filename="log/error.log" datepattern="2006010215" maxrolls="14" />
         </filter>
         <filter levels="critical">
-            <rollingfile formatid="http" type="date" filename="log/critical.log" datepattern="2006010215" maxrolls="14" />
+            <rollingfile formatid="main" type="date" filename="log/critical.log" datepattern="2006010215" maxrolls="14" />
         </filter>
     </outputs>
     <formats>
-        <format id="http" format="%Level %Date(2006-01-02 15:04:05) [%File:%Func:%Line] %Msg%n"/>
+        <format id="main" format="%Level %Date(2006-01-02 15:04:05) [%File:%Func:%Line] %Msg%n"/>
     </formats>
 </seelog>

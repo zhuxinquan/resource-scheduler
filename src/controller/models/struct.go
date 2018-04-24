@@ -1,10 +1,5 @@
 package models
 
-//CGroup指标
-type CgroupMetric struct {
-	SubSystemMetric []SubSystemMetric `json:"subSystemMetric"`
-}
-
 //CGroup中各个子系统的指标
 type SubSystemMetric struct {
 	SubSystem string            `json:"subSystem"`
@@ -13,4 +8,8 @@ type SubSystemMetric struct {
 
 //执行EXEC的请求体
 type CGExecReq struct {
+	Path            string            `json:"path"`
+	SubSystemMetric []SubSystemMetric `json:"subSystemMetric"`
+	Cmd             string            `json:"cmd"`
+	User            string            `json:"user"`
 }

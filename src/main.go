@@ -2,11 +2,20 @@ package main
 
 import (
 	"common/slog"
+	"controller"
+	"controller/models"
 	"github.com/cihub/seelog"
+	"thrift/gen-go/cgroupRpc"
 )
 
-func main() {
+func InitAll() {
 	slog.InitSeelog()
+	controller.InitCgroupMountPath()
+	models.InitAllSubSystemRsPath()
+}
+
+func main() {
 	defer seelog.Flush()
-	seelog.Debug("123")
+	InitAll()
+	cgroupRpc.StartRpcServer()
 }

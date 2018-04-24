@@ -1,7 +1,9 @@
 package cgroupRpc
 
 import (
+	"controller"
 	"git.apache.org/thrift.git/lib/go/thrift"
+	"github.com/cihub/seelog"
 )
 
 const (
@@ -10,19 +12,19 @@ const (
 
 type rpcService struct{}
 
-func (rs * rpcService) ReadAllCgroupMetric(req string) (res string, err error) {
+func (rs *rpcService) ReadAllCgroupMetric(req string) (string, error) {
+	return controller.CGroups{}.ReadAllCgroupMetric(req)
+}
+
+func (rs *rpcService) Exec(req string) (res string, err error) {
+	return controller.CGroups{}.Exec(req)
+}
+
+func (rs *rpcService) SetMetric(req string) (res string, err error) {
 	return "ReadAllCgroupMetric", nil
 }
 
-func (rs * rpcService) Exec(req string) (res string, err error) {
-	return "ReadAllCgroupMetric", nil
-}
-
-func (rs * rpcService) SetMetric(req string) (res string, err error) {
-	return "ReadAllCgroupMetric", nil
-}
-
-func (rs * rpcService) GetCpuAndMemStats() (res string, err error) {
+func (rs *rpcService) GetCpuAndMemStats() (res string, err error) {
 	return "ReadAllCgroupMetric", nil
 }
 
@@ -33,13 +35,13 @@ func StartRpcServer() {
 	protocolFactory := thrift.NewTBinaryProtocolFactoryDefault()
 	serverTransport, err := thrift.NewTServerSocket(NetworkAddr)
 	if err != nil {
-		//seelog.Criticalf("thrift start failed:%v", err)
+		seelog.Criticalf("thrift start failed:%v", err)
 		return
 	}
 
 	handler := &rpcService{}
 	processor := NewRpcServiceProcessor(handler)
 	server = thrift.NewTSimpleServer4(processor, serverTransport, transportFactory, protocolFactory)
-	//seelog.Infof("start thrift server on : %v", NetworkAddr)
+	seelog.Infof("start thrift server on : %v", NetworkAddr)
 	server.Serve()
 }
