@@ -1,11 +1,12 @@
 package main
 
 import (
-	"rpc_controller"
+	"common/slog"
+	"github.com/cihub/seelog"
 )
 
 func main() {
-
-	rpc_controller.Rpc{}.RpcRegister()
-
+	slog.InitSeelog()
+	defer seelog.Flush()
+	seelog.Debug("123")
 }
