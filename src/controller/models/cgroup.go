@@ -18,15 +18,15 @@ import (
 type CGroups struct{}
 
 //获取某个Group所有子系统的指标
-func (this CGroups) ReadAllCgroupMetric(path, cgroupMountPath string) (string, error) {
+func (this CGroups) ReadAllCgroupMetric(path string) (string, error) {
 	subSystemsMetric := make([]SubSystemMetric, 0)
 	var existGroup bool = false
-	dirs, err := ioutil.ReadDir(cgroupMountPath)
+	dirs, err := ioutil.ReadDir(CgroupMountPath)
 	if err != nil {
 		seelog.Errorf("%v", err)
 	}
 	for _, subSys := range dirs {
-		subSystemPath := this.JoinSubSystemPath(path, subSys.Name(), cgroupMountPath)
+		subSystemPath := this.JoinSubSystemPath(path, subSys.Name(), CgroupMountPath)
 		exist, _ := common.PathExists(subSystemPath)
 		if exist {
 			existGroup = true
@@ -98,6 +98,12 @@ func (this CGroups) Exec(cGExecReq CGExecReq) error {
 }
 
 func (this CGroups) WritePidToTasks(pid int64, path string, subSystems []string) error {
+	tasksPath := fmt.Sprintf("%s/memory/rs/tasks", CgroupMountPath)
+	err := ioutil.WriteFile(tasksPath, []byte(strconv.Itoa(int(pid))), os.ModeAppend)
+	if err != nil {
+		seelog.Errorf("通用mem子系统写入PID失败, err:%v", err)
+		return err
+	}
 	for _, s := range subSystems {
 		tasksPath := fmt.Sprintf("%s/%s/%s/tasks", CgroupMountPath, s, path)
 		err := ioutil.WriteFile(tasksPath, []byte(strconv.Itoa(int(pid))), os.ModeAppend)

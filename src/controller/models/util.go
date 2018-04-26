@@ -52,4 +52,14 @@ func InitAllSubSystemRsPath() {
 			}
 		}
 	}
+	//通一设置 memory 限制, 包括内存使用上限和oom设置
+	metricPath := fmt.Sprintf("%s/memory/rs/memory.memsw.limit_in_bytes", CgroupMountPath)
+	err = ioutil.WriteFile(metricPath, []byte("2G"), 0644)
+	metricPath = fmt.Sprintf("%s/memory/rs/memory.oom_control", CgroupMountPath)
+	err = ioutil.WriteFile(metricPath, []byte("0"), 0644)
+	if err != nil {
+		seelog.Info("统一设置内存限制出错，err:", err)
+		panic("统一设置内存限制出错")
+		return
+	}
 }

@@ -10,7 +10,7 @@ type CGroups struct{}
 
 //获取一个Group所有的指标
 func (this CGroups) ReadAllCgroupMetric(groupPath string) (string, error) {
-	return models.CGroups{}.ReadAllCgroupMetric(groupPath, models.CgroupMountPath)
+	return models.CGroups{}.ReadAllCgroupMetric(groupPath)
 }
 
 func (this CGroups) Exec(req string) (string, error) {

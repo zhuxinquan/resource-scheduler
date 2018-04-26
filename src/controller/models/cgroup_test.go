@@ -2,7 +2,8 @@ package models
 
 import (
 	"testing"
-	"time"
+	"fmt"
+	"encoding/json"
 )
 
 //func TestCGroups_ExecCommand(t *testing.T) {
@@ -30,6 +31,8 @@ func TestCGroups_Exec(t *testing.T) {
 		Metric: metrics,
 	})
 	cGExec.SubSystemMetric = subSystemMetrics
-	CGroups{}.Exec(cGExec)
-	time.Sleep(1000* time.Second)
+	//CGroups{}.Exec(cGExec)
+	//time.Sleep(1000* time.Second)
+	b, _ := json.Marshal(cGExec)
+	fmt.Println(string(b))
 }

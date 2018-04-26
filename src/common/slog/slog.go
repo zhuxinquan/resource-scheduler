@@ -8,8 +8,11 @@ var (
 	httpLogger seelog.LoggerInterface
 )
 
-func InitSeelog() {
-	httpLogger, err := seelog.LoggerFromConfigAsFile("conf/seelog.xml")
+func InitSeelog(path string) {
+	if path == "" {
+		path = "conf/seelog.xml"
+	}
+	httpLogger, err := seelog.LoggerFromConfigAsFile(path)
 	if err != nil {
 		seelog.Critical("err parsing config log file", err)
 		return

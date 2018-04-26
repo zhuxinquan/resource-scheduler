@@ -28,10 +28,6 @@ func (rs *rpcService) GetCpuAndMemStats() (res string, err error) {
 	return "ReadAllCgroupMetric", nil
 }
 
-func (rs *rpcService) GetGroupList() (res string, err error) {
-	return "", nil
-}
-
 var server *thrift.TSimpleServer
 
 func StartRpcServer() {

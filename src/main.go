@@ -9,7 +9,7 @@ import (
 )
 
 func InitAll() {
-	slog.InitSeelog()
+	slog.InitSeelog("")
 	controller.InitCgroupMountPath()
 	models.InitAllSubSystemRsPath()
 }
