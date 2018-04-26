@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"syscall"
 	"os/user"
+	"os"
 )
 
 type CGroups struct{}
@@ -63,13 +64,78 @@ func (this CGroups) ReadAllCgroupMetric(path, cgroupMountPath string) (string, e
 }
 
 //执行一个服务
-func (this CGroups) Exec(cGExecReq CGExecReq) (string, error) {
+func (this CGroups) Exec(cGExecReq CGExecReq) error {
 	command := cGExecReq.Cmd
-
-	return "", nil
+	path := cGExecReq.Path
+	path = JoinCommonPath(path)
+	subSystemMetrics := cGExecReq.SubSystemMetric
+	userName := cGExecReq.User
+	subSystems := make([]string, 0)
+	for _, s := range subSystemMetrics {
+		subSystems = append(subSystems, s.SubSystem)
+	}
+	err := this.CreatGroup(subSystems, path)
+	if err != nil {
+		seelog.Errorf("创建Group失败, err：%v", err)
+		return err
+	}
+	err = this.SetCGroupMetric(subSystemMetrics, path)
+	if err != nil {
+		seelog.Errorf("设置子系统参数失败, err：%v", err)
+		return err
+	}
+	pid, err := this.ExecCommand(command, userName)
+	if err != nil {
+		seelog.Errorf("执行Command失败, err:%v", err)
+		return err
+	}
+	err = this.WritePidToTasks(pid, path, subSystems)
+	if err != nil {
+		seelog.Errorf("写入Pid失败,err:%v", err)
+		return err
+	}
+	return nil
 }
 
-func (this CGroups) CreatGroup(subSystem, path string) error {
+func (this CGroups) WritePidToTasks(pid int64, path string, subSystems []string) error {
+	for _, s := range subSystems {
+		tasksPath := fmt.Sprintf("%s/%s/%s/tasks", CgroupMountPath, s, path)
+		err := ioutil.WriteFile(tasksPath, []byte(strconv.Itoa(int(pid))), os.ModeAppend)
+		if err != nil {
+			seelog.Errorf("写入PID失败, err:%v", err)
+			return err
+		}
+	}
+	return nil
+}
+
+func (this CGroups) SetCGroupMetric(subSystemMetrics []SubSystemMetric, path string) error {
+	seelog.Info("开始写入子系统参数")
+	for _, subSystemMetric := range subSystemMetrics {
+		subSystem := subSystemMetric.SubSystem
+		for k, v := range subSystemMetric.Metric {
+			cgroupPath := this.JoinSubSystemPath(path, subSystem, CgroupMountPath)
+			metricPath := fmt.Sprintf("%s/%s", cgroupPath, k)
+			err := ioutil.WriteFile(metricPath, []byte(v), 0644)
+			if err != nil {
+				return fmt.Errorf("写入cgroup文件失败：%s", err)
+			}
+		}
+	}
+	return nil
+}
+
+
+func (this CGroups) CreatGroup(subSystems []string, path string) error {
+	for _, s := range subSystems {
+		path := this.JoinSubSystemPath(path, s, CgroupMountPath)
+		err := os.MkdirAll(path, os.ModePerm)
+		if err != nil {
+			seelog.Errorf("创建Group失败, path: %s, err:%s", path, err)
+			return err
+		}
+		seelog.Infof("创建Group完成, path: %s", path)
+	}
 	return nil
 }
 
@@ -96,24 +162,11 @@ func (this CGroups) ExecCommand(command, userName string) (int64, error) {
 	}()
 	for {
 		if cmd.Process != nil {
-			seelog.Info("程序开始执行", cmd.Process.Pid)
+			seelog.Info("服务开始执行", cmd.Process.Pid)
 			return int64(cmd.Process.Pid), nil
 		}
 		time.Sleep(1 * time.Nanosecond)
 	}
-}
-
-func (this CGroups) SetCGroupMetric(subSystemMetric SubSystemMetric, path string) error {
-	subSystem := subSystemMetric.SubSystem
-	for k, v := range subSystemMetric.Metric {
-		cgroupPath := this.JoinSubSystemPath(path, subSystem, CgroupMountPath)
-		metricPath := fmt.Sprintf("%s/%s", cgroupPath, k)
-		err := ioutil.WriteFile(metricPath, []byte(v), 0644)
-		if err != nil {
-			return fmt.Errorf("写入cgroup文件失败：%s", err)
-		}
-	}
-	return nil
 }
 
 //获取子系统中Group的路径
@@ -124,7 +177,7 @@ func (this CGroups) JoinSubSystemPath(path, subSystem, cgroupMountPath string) s
 	return fmt.Sprintf("%s/%s/%s", cgroupMountPath, subSystem, path)
 }
 
-//给Group路径上添加通一路径 rs, 最终返回结果不包含 '/'
+//给Group路径上添加统一路径 rs, 最终返回结果不包含 '/'
 func JoinCommonPath(path string) string {
 	if !strings.HasPrefix(path, "/rs/") && !strings.HasPrefix(path, "rs/") {
 		path = strings.TrimPrefix(path, "/")

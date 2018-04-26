@@ -18,9 +18,9 @@ func (this CGroups) Exec(req string) (string, error) {
 	err := json.Unmarshal([]byte(req), &cGExecReq)
 	if err != nil {
 		seelog.Errorf("json格式化错误, %v", err)
-		return "", err
+		return "failed", err
 	}
-	return models.CGroups{}.Exec(cGExecReq)
+	return "success", models.CGroups{}.Exec(cGExecReq)
 }
 
 func InitCgroupMountPath() {
