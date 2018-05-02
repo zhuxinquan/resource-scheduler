@@ -1,11 +1,11 @@
-package test
+package cgroupRpc
 
 import (
-	"testing"
-	"thrift/gen-go/cgroupRpc"
 	"common/slog"
 	"controller"
 	"controller/models"
+	"testing"
+	"thrift/gen-go/cgroupRpc"
 )
 
 func TestCGroups_StartRpcServer(t *testing.T) {

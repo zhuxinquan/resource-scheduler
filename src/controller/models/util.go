@@ -13,6 +13,8 @@ var (
 	CgroupMountPath    = ""
 )
 
+var CGroupSubSystemList []string
+
 // 返回的结果不包含/,已过滤  如:/sys/fs/cgroup
 func GetCgroupMountPath() string {
 	b, err := ioutil.ReadFile("/proc/mounts")
@@ -62,4 +64,19 @@ func InitAllSubSystemRsPath() {
 		panic("统一设置内存限制出错")
 		return
 	}
+}
+
+func GetAllSubsystemList() ([]string, error) {
+	list := make([]string, 0)
+	dirs, err := ioutil.ReadDir(CgroupMountPath)
+	if err != nil {
+		return list, err
+	}
+	for _, subSys := range dirs {
+		if strings.Contains(subSys.Name(), ",") {
+			continue
+		}
+		list = append(list, subSys.Name())
+	}
+	return list, nil
 }

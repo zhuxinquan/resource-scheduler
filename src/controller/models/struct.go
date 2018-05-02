@@ -13,3 +13,8 @@ type CGExecReq struct {
 	Cmd             string            `json:"cmd"`
 	User            string            `json:"user"`
 }
+
+type SetMetricData struct {
+	SubSystemMetrics []SubSystemMetric `json:"subSystemMetric"`
+	Path             string            `json:"path"`
+}

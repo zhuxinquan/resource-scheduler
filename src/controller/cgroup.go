@@ -30,4 +30,9 @@ func InitCgroupMountPath() {
 	} else {
 		seelog.Info("Cgroup 已挂载，path:", models.CgroupMountPath)
 	}
+	subSystemList, err := models.GetAllSubsystemList()
+	if err != nil {
+		seelog.Errorf("获取子系统列表失败, err:%v", err)
+	}
+	models.CGroupSubSystemList = subSystemList
 }

@@ -22,3 +22,6 @@ log/
 
 debug.txt
 
+.gitversion
+
+resource-scheduler-agent

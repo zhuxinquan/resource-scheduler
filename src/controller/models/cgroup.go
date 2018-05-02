@@ -6,13 +6,12 @@ import (
 	"fmt"
 	"github.com/cihub/seelog"
 	"io/ioutil"
+	"os"
 	"os/exec"
-	"strings"
-	"time"
+	"os/user"
 	"strconv"
 	"syscall"
-	"os/user"
-	"os"
+	"time"
 )
 
 type CGroups struct{}
@@ -21,23 +20,22 @@ type CGroups struct{}
 func (this CGroups) ReadAllCgroupMetric(path string) (string, error) {
 	subSystemsMetric := make([]SubSystemMetric, 0)
 	var existGroup bool = false
-	dirs, err := ioutil.ReadDir(CgroupMountPath)
-	if err != nil {
-		seelog.Errorf("%v", err)
-	}
-	for _, subSys := range dirs {
-		subSystemPath := this.JoinSubSystemPath(path, subSys.Name(), CgroupMountPath)
+	for _, subSys := range CGroupSubSystemList {
+		subSystemPath := Paths{}.JoinSubSystemPath(path, subSys, CgroupMountPath)
 		exist, _ := common.PathExists(subSystemPath)
 		if exist {
 			existGroup = true
 			metric := make(map[string]string)
 			var tmpSubSys SubSystemMetric
-			tmpSubSys.SubSystem = subSys.Name()
+			tmpSubSys.SubSystem = subSys
 			files, err := ioutil.ReadDir(subSystemPath)
 			if err != nil {
 				seelog.Errorf("获取目录下文件失败，err: %v", err)
 			}
 			for _, f := range files {
+				if f.Name() == "cgroup.event_control" {
+					continue
+				}
 				filePath := fmt.Sprintf("%s/%s", subSystemPath, f.Name())
 				b, err := ioutil.ReadFile(filePath)
 				if err != nil {
@@ -79,7 +77,7 @@ func (this CGroups) Exec(cGExecReq CGExecReq) error {
 		seelog.Errorf("创建Group失败, err：%v", err)
 		return err
 	}
-	err = this.SetCGroupMetric(subSystemMetrics, path)
+	err = Metrics{}.SetCGroupMetric(subSystemMetrics, path)
 	if err != nil {
 		seelog.Errorf("设置子系统参数失败, err：%v", err)
 		return err
@@ -115,26 +113,9 @@ func (this CGroups) WritePidToTasks(pid int64, path string, subSystems []string)
 	return nil
 }
 
-func (this CGroups) SetCGroupMetric(subSystemMetrics []SubSystemMetric, path string) error {
-	seelog.Info("开始写入子系统参数")
-	for _, subSystemMetric := range subSystemMetrics {
-		subSystem := subSystemMetric.SubSystem
-		for k, v := range subSystemMetric.Metric {
-			cgroupPath := this.JoinSubSystemPath(path, subSystem, CgroupMountPath)
-			metricPath := fmt.Sprintf("%s/%s", cgroupPath, k)
-			err := ioutil.WriteFile(metricPath, []byte(v), 0644)
-			if err != nil {
-				return fmt.Errorf("写入cgroup文件失败：%s", err)
-			}
-		}
-	}
-	return nil
-}
-
-
 func (this CGroups) CreatGroup(subSystems []string, path string) error {
 	for _, s := range subSystems {
-		path := this.JoinSubSystemPath(path, s, CgroupMountPath)
+		path := Paths{}.JoinSubSystemPath(path, s, CgroupMountPath)
 		err := os.MkdirAll(path, os.ModePerm)
 		if err != nil {
 			seelog.Errorf("创建Group失败, path: %s, err:%s", path, err)
@@ -146,7 +127,7 @@ func (this CGroups) CreatGroup(subSystems []string, path string) error {
 }
 
 func (this CGroups) ExecCommand(command, userName string) (int64, error) {
-	cmd := exec.Command("/bin/bash", "-c", "sleep 1 && " + command)
+	cmd := exec.Command("/bin/bash", "-c", "sleep 1 && "+command)
 	if userName != "" {
 		if userInfo, err := user.Lookup(userName); err != nil {
 			return -1, err
@@ -175,21 +156,17 @@ func (this CGroups) ExecCommand(command, userName string) (int64, error) {
 	}
 }
 
-//获取子系统中Group的路径
-func (this CGroups) JoinSubSystemPath(path, subSystem, cgroupMountPath string) string {
-	path = JoinCommonPath(path)
-	subSystem = strings.TrimPrefix(subSystem, "/")
-	subSystem = strings.TrimSuffix(subSystem, "/")
-	return fmt.Sprintf("%s/%s/%s", cgroupMountPath, subSystem, path)
-}
-
-//给Group路径上添加统一路径 rs, 最终返回结果不包含 '/'
-func JoinCommonPath(path string) string {
-	if !strings.HasPrefix(path, "/rs/") && !strings.HasPrefix(path, "rs/") {
-		path = strings.TrimPrefix(path, "/")
-		path = fmt.Sprintf("%s/%s", COMMON_CGROUP_PATH, path)
-		strings.TrimSuffix(path, "/")
-	}
-	strings.TrimPrefix(path, "/")
-	return path
+//获取所有的GroupList
+func (this CGroups) ReadAllSubsystemList() ([]string, error) {
+	//groupMaps := make(map[string]int)
+	//groups := make([]string, 0)
+	//dirs, err := ioutil.ReadDir(CgroupMountPath)
+	//if err != nil {
+	//	seelog.Errorf("%v", err)
+	//	return groups, err
+	//}
+	//for _, subSys := range dirs {
+	//	subSys
+	//}
+	return nil, nil
 }

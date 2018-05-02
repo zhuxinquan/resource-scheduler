@@ -21,7 +21,7 @@ func (rs *rpcService) Exec(req string) (res string, err error) {
 }
 
 func (rs *rpcService) SetMetric(req string) (res string, err error) {
-	return "ReadAllCgroupMetric", nil
+	return controller.Metrics{}.SetMetric(req)
 }
 
 func (rs *rpcService) GetCpuAndMemStats() (res string, err error) {
