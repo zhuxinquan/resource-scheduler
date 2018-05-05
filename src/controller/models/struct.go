@@ -31,3 +31,8 @@ type SysInfo struct {
 	SwapUsed   int64  `json:"swapUsed"`
 	SwapRate   string `json:"swapRate"`
 }
+
+type GroupInfo struct {
+	GroupPath  string   `json:"groupPath"`
+	SubSystems []string `json:"subSystems"`
+}

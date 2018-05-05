@@ -1,8 +1,7 @@
-package sysinfo
+package models
 
 import (
 	"common"
-	"controller/models"
 	"encoding/json"
 	"fmt"
 	"github.com/cihub/seelog"
@@ -10,8 +9,10 @@ import (
 	"strings"
 )
 
-func GetSysInfo() (string, error) {
-	var sysInfo models.SysInfo
+type SysInfos struct{}
+
+func (this SysInfos) GetSysInfo() (string, error) {
+	var sysInfo SysInfo
 	//CPU us
 	cmd := common.NewShell("top -bn 1 |grep Cpu | cut -d \",\" -f 1 | cut -d \":\" -f 2")
 	r, err := cmd.CombinedOutput()

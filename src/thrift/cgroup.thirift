@@ -9,6 +9,8 @@ service RpcService {
     string Exec(1: string req);
     // 设置CGroup单个指标
     string SetMetric(1: string req);
+    // 获取CPU和内存使用情况
+    string GetSysInfo();
     // 获取系统当前CPU和MEM状态
     string GetCpuAndMemStats()
     // 获取当前有哪些Group，仅取各个子系统rs路径下的group

@@ -28,12 +28,16 @@ func (rs *rpcService) SetMetric(req string) (res string, err error) {
 	return controller.Metrics{}.SetMetric(req)
 }
 
+func (rs *rpcService) GetSysInfo() (res string, err error) {
+	return controller.SysInfos{}.GetSysInfo()
+}
+
 func (rs *rpcService) GetCpuAndMemStats() (res string, err error) {
 	return "ReadAllCgroupMetric", nil
 }
 
 func (rs *rpcService) GetGroupList() (res string, err error) {
-	return "", nil
+	return controller.CGroups{}.GetGroupList()
 }
 
 var server *thrift.TSimpleServer

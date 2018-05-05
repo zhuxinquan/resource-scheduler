@@ -1,9 +1,9 @@
 package models
 
 import (
-	"testing"
-	"fmt"
 	"encoding/json"
+	"fmt"
+	"testing"
 )
 
 //func TestCGroups_ExecCommand(t *testing.T) {
@@ -28,11 +28,16 @@ func TestCGroups_Exec(t *testing.T) {
 	metrics["cpu.cfs_period_us"] = "10000"
 	subSystemMetrics = append(subSystemMetrics, SubSystemMetric{
 		SubSystem: "cpu",
-		Metric: metrics,
+		Metric:    metrics,
 	})
 	cGExec.SubSystemMetric = subSystemMetrics
 	//CGroups{}.Exec(cGExec)
 	//time.Sleep(1000* time.Second)
 	b, _ := json.Marshal(cGExec)
 	fmt.Println(string(b))
+}
+
+func TestCGroups_GetGroupList(t *testing.T) {
+	s, _ := CGroups{}.GetGroupList()
+	fmt.Println(s)
 }

@@ -25,6 +25,7 @@ func Usage() {
   fmt.Fprintln(os.Stderr, "  string ReadSingleSubsytemCgroupMetric(string path, string subSystem)")
   fmt.Fprintln(os.Stderr, "  string Exec(string req)")
   fmt.Fprintln(os.Stderr, "  string SetMetric(string req)")
+  fmt.Fprintln(os.Stderr, "  string GetSysInfo()")
   fmt.Fprintln(os.Stderr, "  string GetCpuAndMemStats()")
   fmt.Fprintln(os.Stderr, "  string GetGroupList()")
   fmt.Fprintln(os.Stderr)
@@ -161,6 +162,14 @@ func main() {
     argvalue0 := flag.Arg(1)
     value0 := argvalue0
     fmt.Print(client.SetMetric(value0))
+    fmt.Print("\n")
+    break
+  case "GetSysInfo":
+    if flag.NArg() - 1 != 0 {
+      fmt.Fprintln(os.Stderr, "GetSysInfo requires 0 args")
+      flag.Usage()
+    }
+    fmt.Print(client.GetSysInfo())
     fmt.Print("\n")
     break
   case "GetCpuAndMemStats":

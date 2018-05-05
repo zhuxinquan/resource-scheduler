@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"os/user"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -102,8 +103,41 @@ func (this CGroups) ReadSingleSubsytemCgroupMetric(path, subSystem string) (stri
 
 //获取所有Group列表
 func (this CGroups) GetGroupList() (string, error) {
-	//cmd := common.NewShell("")
-	return "", nil
+	groupInfos := make([]GroupInfo, 0)
+	groupMap := make(map[string][]string)
+	cmd := common.NewShell("lscgroup | grep :/rs")
+	r, err := cmd.CombinedOutput()
+	if err != nil {
+		e := seelog.Errorf("获取所有Group列表失败[%s]", err)
+		return "", e
+	}
+	out := string(r)
+	out = strings.Trim(out, "\n")
+	out = strings.Trim(out, " ")
+	ss := strings.Split(out, "\n")
+	for _, s := range ss {
+		sp := strings.Split(s, ":")
+		if value, ok := groupMap[sp[1]]; ok {
+			value = append(value, strings.Split(sp[0], ",")...)
+			groupMap[sp[1]] = value
+		} else {
+			value = make([]string, 0)
+			value = append(value, strings.Split(sp[0], ",")...)
+			groupMap[sp[1]] = value
+		}
+	}
+	for k, v := range groupMap {
+		groupInfos = append(groupInfos, GroupInfo{
+			GroupPath:  k,
+			SubSystems: v,
+		})
+	}
+	str, err := json.Marshal(groupInfos)
+	if err != nil {
+		e := seelog.Errorf("Json 转化失败[%v]", err)
+		return "", e
+	}
+	return string(str), nil
 }
 
 //执行一个服务
