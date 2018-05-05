@@ -13,6 +13,16 @@ func (this CGroups) ReadAllCgroupMetric(groupPath string) (string, error) {
 	return models.CGroups{}.ReadAllCgroupMetric(groupPath)
 }
 
+//获取某个Group指定子系统的指标
+func (this CGroups) ReadSingleSubsytemCgroupMetric(path, subSystem string) (string, error) {
+	return models.CGroups{}.ReadSingleSubsytemCgroupMetric(path, subSystem)
+}
+
+//获取所有Group列表
+func (this CGroups) GetGroupList() (string, error) {
+	return models.CGroups{}.GetGroupList()
+}
+
 func (this CGroups) Exec(req string) (string, error) {
 	var cGExecReq models.CGExecReq
 	err := json.Unmarshal([]byte(req), &cGExecReq)

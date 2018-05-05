@@ -22,6 +22,7 @@ func Usage() {
   flag.PrintDefaults()
   fmt.Fprintln(os.Stderr, "\nFunctions:")
   fmt.Fprintln(os.Stderr, "  string ReadAllCgroupMetric(string req)")
+  fmt.Fprintln(os.Stderr, "  string ReadSingleSubsytemCgroupMetric(string path, string subSystem)")
   fmt.Fprintln(os.Stderr, "  string Exec(string req)")
   fmt.Fprintln(os.Stderr, "  string SetMetric(string req)")
   fmt.Fprintln(os.Stderr, "  string GetCpuAndMemStats()")
@@ -128,6 +129,18 @@ func main() {
     argvalue0 := flag.Arg(1)
     value0 := argvalue0
     fmt.Print(client.ReadAllCgroupMetric(value0))
+    fmt.Print("\n")
+    break
+  case "ReadSingleSubsytemCgroupMetric":
+    if flag.NArg() - 1 != 2 {
+      fmt.Fprintln(os.Stderr, "ReadSingleSubsytemCgroupMetric requires 2 args")
+      flag.Usage()
+    }
+    argvalue0 := flag.Arg(1)
+    value0 := argvalue0
+    argvalue1 := flag.Arg(2)
+    value1 := argvalue1
+    fmt.Print(client.ReadSingleSubsytemCgroupMetric(value0, value1))
     fmt.Print("\n")
     break
   case "Exec":

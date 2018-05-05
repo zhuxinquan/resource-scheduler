@@ -18,3 +18,16 @@ type SetMetricData struct {
 	SubSystemMetrics []SubSystemMetric `json:"subSystemMetric"`
 	Path             string            `json:"path"`
 }
+
+type SysInfo struct {
+	CpuUserUse string `json:"cpuUserUse"`
+	CpuSysUse  string `json:"cpuSysUse"`
+	MemTotal   int64  `json:"memTotal"`
+	MemFree    int64  `json:"memFree"`
+	MemUsed    int64  `json:"memUsed"`
+	MemRate    string `json:"memRate"`
+	SwapTotal  int64  `json:"swapTotal"`
+	SwapFree   int64  `json:"swapFree"`
+	SwapUsed   int64  `json:"swapUsed"`
+	SwapRate   string `json:"swapRate"`
+}

@@ -16,6 +16,10 @@ func (rs *rpcService) ReadAllCgroupMetric(req string) (string, error) {
 	return controller.CGroups{}.ReadAllCgroupMetric(req)
 }
 
+func (rs *rpcService) ReadSingleSubsytemCgroupMetric(path, subSystem string) (string, error) {
+	return controller.CGroups{}.ReadSingleSubsytemCgroupMetric(path, subSystem)
+}
+
 func (rs *rpcService) Exec(req string) (res string, err error) {
 	return controller.CGroups{}.Exec(req)
 }

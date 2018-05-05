@@ -19,6 +19,10 @@ type RpcService interface {
   //  - Req
   ReadAllCgroupMetric(req string) (r string, err error)
   // Parameters:
+  //  - Path
+  //  - SubSystem
+  ReadSingleSubsytemCgroupMetric(path string, subSystem string) (r string, err error)
+  // Parameters:
   //  - Req
   Exec(req string) (r string, err error)
   // Parameters:
@@ -131,6 +135,84 @@ func (p *RpcServiceClient) recvReadAllCgroupMetric() (value string, err error) {
 }
 
 // Parameters:
+//  - Path
+//  - SubSystem
+func (p *RpcServiceClient) ReadSingleSubsytemCgroupMetric(path string, subSystem string) (r string, err error) {
+  if err = p.sendReadSingleSubsytemCgroupMetric(path, subSystem); err != nil { return }
+  return p.recvReadSingleSubsytemCgroupMetric()
+}
+
+func (p *RpcServiceClient) sendReadSingleSubsytemCgroupMetric(path string, subSystem string)(err error) {
+  oprot := p.OutputProtocol
+  if oprot == nil {
+    oprot = p.ProtocolFactory.GetProtocol(p.Transport)
+    p.OutputProtocol = oprot
+  }
+  p.SeqId++
+  if err = oprot.WriteMessageBegin("ReadSingleSubsytemCgroupMetric", thrift.CALL, p.SeqId); err != nil {
+      return
+  }
+  args := RpcServiceReadSingleSubsytemCgroupMetricArgs{
+  Path : path,
+  SubSystem : subSystem,
+  }
+  if err = args.Write(oprot); err != nil {
+      return
+  }
+  if err = oprot.WriteMessageEnd(); err != nil {
+      return
+  }
+  return oprot.Flush()
+}
+
+
+func (p *RpcServiceClient) recvReadSingleSubsytemCgroupMetric() (value string, err error) {
+  iprot := p.InputProtocol
+  if iprot == nil {
+    iprot = p.ProtocolFactory.GetProtocol(p.Transport)
+    p.InputProtocol = iprot
+  }
+  method, mTypeId, seqId, err := iprot.ReadMessageBegin()
+  if err != nil {
+    return
+  }
+  if method != "ReadSingleSubsytemCgroupMetric" {
+    err = thrift.NewTApplicationException(thrift.WRONG_METHOD_NAME, "ReadSingleSubsytemCgroupMetric failed: wrong method name")
+    return
+  }
+  if p.SeqId != seqId {
+    err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "ReadSingleSubsytemCgroupMetric failed: out of sequence response")
+    return
+  }
+  if mTypeId == thrift.EXCEPTION {
+    error2 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+    var error3 error
+    error3, err = error2.Read(iprot)
+    if err != nil {
+      return
+    }
+    if err = iprot.ReadMessageEnd(); err != nil {
+      return
+    }
+    err = error3
+    return
+  }
+  if mTypeId != thrift.REPLY {
+    err = thrift.NewTApplicationException(thrift.INVALID_MESSAGE_TYPE_EXCEPTION, "ReadSingleSubsytemCgroupMetric failed: invalid message type")
+    return
+  }
+  result := RpcServiceReadSingleSubsytemCgroupMetricResult{}
+  if err = result.Read(iprot); err != nil {
+    return
+  }
+  if err = iprot.ReadMessageEnd(); err != nil {
+    return
+  }
+  value = result.GetSuccess()
+  return
+}
+
+// Parameters:
 //  - Req
 func (p *RpcServiceClient) Exec(req string) (r string, err error) {
   if err = p.sendExec(req); err != nil { return }
@@ -179,16 +261,16 @@ func (p *RpcServiceClient) recvExec() (value string, err error) {
     return
   }
   if mTypeId == thrift.EXCEPTION {
-    error2 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-    var error3 error
-    error3, err = error2.Read(iprot)
+    error4 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+    var error5 error
+    error5, err = error4.Read(iprot)
     if err != nil {
       return
     }
     if err = iprot.ReadMessageEnd(); err != nil {
       return
     }
-    err = error3
+    err = error5
     return
   }
   if mTypeId != thrift.REPLY {
@@ -255,16 +337,16 @@ func (p *RpcServiceClient) recvSetMetric() (value string, err error) {
     return
   }
   if mTypeId == thrift.EXCEPTION {
-    error4 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-    var error5 error
-    error5, err = error4.Read(iprot)
+    error6 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+    var error7 error
+    error7, err = error6.Read(iprot)
     if err != nil {
       return
     }
     if err = iprot.ReadMessageEnd(); err != nil {
       return
     }
-    err = error5
+    err = error7
     return
   }
   if mTypeId != thrift.REPLY {
@@ -328,16 +410,16 @@ func (p *RpcServiceClient) recvGetCpuAndMemStats() (value string, err error) {
     return
   }
   if mTypeId == thrift.EXCEPTION {
-    error6 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-    var error7 error
-    error7, err = error6.Read(iprot)
+    error8 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+    var error9 error
+    error9, err = error8.Read(iprot)
     if err != nil {
       return
     }
     if err = iprot.ReadMessageEnd(); err != nil {
       return
     }
-    err = error7
+    err = error9
     return
   }
   if mTypeId != thrift.REPLY {
@@ -401,16 +483,16 @@ func (p *RpcServiceClient) recvGetGroupList() (value string, err error) {
     return
   }
   if mTypeId == thrift.EXCEPTION {
-    error8 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
-    var error9 error
-    error9, err = error8.Read(iprot)
+    error10 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+    var error11 error
+    error11, err = error10.Read(iprot)
     if err != nil {
       return
     }
     if err = iprot.ReadMessageEnd(); err != nil {
       return
     }
-    err = error9
+    err = error11
     return
   }
   if mTypeId != thrift.REPLY {
@@ -449,13 +531,14 @@ func (p *RpcServiceProcessor) ProcessorMap() map[string]thrift.TProcessorFunctio
 
 func NewRpcServiceProcessor(handler RpcService) *RpcServiceProcessor {
 
-  self10 := &RpcServiceProcessor{handler:handler, processorMap:make(map[string]thrift.TProcessorFunction)}
-  self10.processorMap["ReadAllCgroupMetric"] = &rpcServiceProcessorReadAllCgroupMetric{handler:handler}
-  self10.processorMap["Exec"] = &rpcServiceProcessorExec{handler:handler}
-  self10.processorMap["SetMetric"] = &rpcServiceProcessorSetMetric{handler:handler}
-  self10.processorMap["GetCpuAndMemStats"] = &rpcServiceProcessorGetCpuAndMemStats{handler:handler}
-  self10.processorMap["GetGroupList"] = &rpcServiceProcessorGetGroupList{handler:handler}
-return self10
+  self12 := &RpcServiceProcessor{handler:handler, processorMap:make(map[string]thrift.TProcessorFunction)}
+  self12.processorMap["ReadAllCgroupMetric"] = &rpcServiceProcessorReadAllCgroupMetric{handler:handler}
+  self12.processorMap["ReadSingleSubsytemCgroupMetric"] = &rpcServiceProcessorReadSingleSubsytemCgroupMetric{handler:handler}
+  self12.processorMap["Exec"] = &rpcServiceProcessorExec{handler:handler}
+  self12.processorMap["SetMetric"] = &rpcServiceProcessorSetMetric{handler:handler}
+  self12.processorMap["GetCpuAndMemStats"] = &rpcServiceProcessorGetCpuAndMemStats{handler:handler}
+  self12.processorMap["GetGroupList"] = &rpcServiceProcessorGetGroupList{handler:handler}
+return self12
 }
 
 func (p *RpcServiceProcessor) Process(iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
@@ -466,12 +549,12 @@ func (p *RpcServiceProcessor) Process(iprot, oprot thrift.TProtocol) (success bo
   }
   iprot.Skip(thrift.STRUCT)
   iprot.ReadMessageEnd()
-  x11 := thrift.NewTApplicationException(thrift.UNKNOWN_METHOD, "Unknown function " + name)
+  x13 := thrift.NewTApplicationException(thrift.UNKNOWN_METHOD, "Unknown function " + name)
   oprot.WriteMessageBegin(name, thrift.EXCEPTION, seqId)
-  x11.Write(oprot)
+  x13.Write(oprot)
   oprot.WriteMessageEnd()
   oprot.Flush()
-  return false, x11
+  return false, x13
 
 }
 
@@ -506,6 +589,54 @@ var retval string
     result.Success = &retval
 }
   if err2 = oprot.WriteMessageBegin("ReadAllCgroupMetric", thrift.REPLY, seqId); err2 != nil {
+    err = err2
+  }
+  if err2 = result.Write(oprot); err == nil && err2 != nil {
+    err = err2
+  }
+  if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+    err = err2
+  }
+  if err2 = oprot.Flush(); err == nil && err2 != nil {
+    err = err2
+  }
+  if err != nil {
+    return
+  }
+  return true, err
+}
+
+type rpcServiceProcessorReadSingleSubsytemCgroupMetric struct {
+  handler RpcService
+}
+
+func (p *rpcServiceProcessorReadSingleSubsytemCgroupMetric) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+  args := RpcServiceReadSingleSubsytemCgroupMetricArgs{}
+  if err = args.Read(iprot); err != nil {
+    iprot.ReadMessageEnd()
+    x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+    oprot.WriteMessageBegin("ReadSingleSubsytemCgroupMetric", thrift.EXCEPTION, seqId)
+    x.Write(oprot)
+    oprot.WriteMessageEnd()
+    oprot.Flush()
+    return false, err
+  }
+
+  iprot.ReadMessageEnd()
+  result := RpcServiceReadSingleSubsytemCgroupMetricResult{}
+var retval string
+  var err2 error
+  if retval, err2 = p.handler.ReadSingleSubsytemCgroupMetric(args.Path, args.SubSystem); err2 != nil {
+    x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing ReadSingleSubsytemCgroupMetric: " + err2.Error())
+    oprot.WriteMessageBegin("ReadSingleSubsytemCgroupMetric", thrift.EXCEPTION, seqId)
+    x.Write(oprot)
+    oprot.WriteMessageEnd()
+    oprot.Flush()
+    return true, err2
+  } else {
+    result.Success = &retval
+}
+  if err2 = oprot.WriteMessageBegin("ReadSingleSubsytemCgroupMetric", thrift.REPLY, seqId); err2 != nil {
     err = err2
   }
   if err2 = result.Write(oprot); err == nil && err2 != nil {
@@ -895,6 +1026,215 @@ func (p *RpcServiceReadAllCgroupMetricResult) String() string {
     return "<nil>"
   }
   return fmt.Sprintf("RpcServiceReadAllCgroupMetricResult(%+v)", *p)
+}
+
+// Attributes:
+//  - Path
+//  - SubSystem
+type RpcServiceReadSingleSubsytemCgroupMetricArgs struct {
+  Path string `thrift:"path,1" db:"path" json:"path"`
+  SubSystem string `thrift:"subSystem,2" db:"subSystem" json:"subSystem"`
+}
+
+func NewRpcServiceReadSingleSubsytemCgroupMetricArgs() *RpcServiceReadSingleSubsytemCgroupMetricArgs {
+  return &RpcServiceReadSingleSubsytemCgroupMetricArgs{}
+}
+
+
+func (p *RpcServiceReadSingleSubsytemCgroupMetricArgs) GetPath() string {
+  return p.Path
+}
+
+func (p *RpcServiceReadSingleSubsytemCgroupMetricArgs) GetSubSystem() string {
+  return p.SubSystem
+}
+func (p *RpcServiceReadSingleSubsytemCgroupMetricArgs) Read(iprot thrift.TProtocol) error {
+  if _, err := iprot.ReadStructBegin(); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
+  }
+
+
+  for {
+    _, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+    if err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T field %d read error: ", p, fieldId), err)
+    }
+    if fieldTypeId == thrift.STOP { break; }
+    switch fieldId {
+    case 1:
+      if err := p.ReadField1(iprot); err != nil {
+        return err
+      }
+    case 2:
+      if err := p.ReadField2(iprot); err != nil {
+        return err
+      }
+    default:
+      if err := iprot.Skip(fieldTypeId); err != nil {
+        return err
+      }
+    }
+    if err := iprot.ReadFieldEnd(); err != nil {
+      return err
+    }
+  }
+  if err := iprot.ReadStructEnd(); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+  }
+  return nil
+}
+
+func (p *RpcServiceReadSingleSubsytemCgroupMetricArgs)  ReadField1(iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(); err != nil {
+  return thrift.PrependError("error reading field 1: ", err)
+} else {
+  p.Path = v
+}
+  return nil
+}
+
+func (p *RpcServiceReadSingleSubsytemCgroupMetricArgs)  ReadField2(iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(); err != nil {
+  return thrift.PrependError("error reading field 2: ", err)
+} else {
+  p.SubSystem = v
+}
+  return nil
+}
+
+func (p *RpcServiceReadSingleSubsytemCgroupMetricArgs) Write(oprot thrift.TProtocol) error {
+  if err := oprot.WriteStructBegin("ReadSingleSubsytemCgroupMetric_args"); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
+  if p != nil {
+    if err := p.writeField1(oprot); err != nil { return err }
+    if err := p.writeField2(oprot); err != nil { return err }
+  }
+  if err := oprot.WriteFieldStop(); err != nil {
+    return thrift.PrependError("write field stop error: ", err) }
+  if err := oprot.WriteStructEnd(); err != nil {
+    return thrift.PrependError("write struct stop error: ", err) }
+  return nil
+}
+
+func (p *RpcServiceReadSingleSubsytemCgroupMetricArgs) writeField1(oprot thrift.TProtocol) (err error) {
+  if err := oprot.WriteFieldBegin("path", thrift.STRING, 1); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field begin error 1:path: ", p), err) }
+  if err := oprot.WriteString(string(p.Path)); err != nil {
+  return thrift.PrependError(fmt.Sprintf("%T.path (1) field write error: ", p), err) }
+  if err := oprot.WriteFieldEnd(); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field end error 1:path: ", p), err) }
+  return err
+}
+
+func (p *RpcServiceReadSingleSubsytemCgroupMetricArgs) writeField2(oprot thrift.TProtocol) (err error) {
+  if err := oprot.WriteFieldBegin("subSystem", thrift.STRING, 2); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field begin error 2:subSystem: ", p), err) }
+  if err := oprot.WriteString(string(p.SubSystem)); err != nil {
+  return thrift.PrependError(fmt.Sprintf("%T.subSystem (2) field write error: ", p), err) }
+  if err := oprot.WriteFieldEnd(); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field end error 2:subSystem: ", p), err) }
+  return err
+}
+
+func (p *RpcServiceReadSingleSubsytemCgroupMetricArgs) String() string {
+  if p == nil {
+    return "<nil>"
+  }
+  return fmt.Sprintf("RpcServiceReadSingleSubsytemCgroupMetricArgs(%+v)", *p)
+}
+
+// Attributes:
+//  - Success
+type RpcServiceReadSingleSubsytemCgroupMetricResult struct {
+  Success *string `thrift:"success,0" db:"success" json:"success,omitempty"`
+}
+
+func NewRpcServiceReadSingleSubsytemCgroupMetricResult() *RpcServiceReadSingleSubsytemCgroupMetricResult {
+  return &RpcServiceReadSingleSubsytemCgroupMetricResult{}
+}
+
+var RpcServiceReadSingleSubsytemCgroupMetricResult_Success_DEFAULT string
+func (p *RpcServiceReadSingleSubsytemCgroupMetricResult) GetSuccess() string {
+  if !p.IsSetSuccess() {
+    return RpcServiceReadSingleSubsytemCgroupMetricResult_Success_DEFAULT
+  }
+return *p.Success
+}
+func (p *RpcServiceReadSingleSubsytemCgroupMetricResult) IsSetSuccess() bool {
+  return p.Success != nil
+}
+
+func (p *RpcServiceReadSingleSubsytemCgroupMetricResult) Read(iprot thrift.TProtocol) error {
+  if _, err := iprot.ReadStructBegin(); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
+  }
+
+
+  for {
+    _, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+    if err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T field %d read error: ", p, fieldId), err)
+    }
+    if fieldTypeId == thrift.STOP { break; }
+    switch fieldId {
+    case 0:
+      if err := p.ReadField0(iprot); err != nil {
+        return err
+      }
+    default:
+      if err := iprot.Skip(fieldTypeId); err != nil {
+        return err
+      }
+    }
+    if err := iprot.ReadFieldEnd(); err != nil {
+      return err
+    }
+  }
+  if err := iprot.ReadStructEnd(); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+  }
+  return nil
+}
+
+func (p *RpcServiceReadSingleSubsytemCgroupMetricResult)  ReadField0(iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(); err != nil {
+  return thrift.PrependError("error reading field 0: ", err)
+} else {
+  p.Success = &v
+}
+  return nil
+}
+
+func (p *RpcServiceReadSingleSubsytemCgroupMetricResult) Write(oprot thrift.TProtocol) error {
+  if err := oprot.WriteStructBegin("ReadSingleSubsytemCgroupMetric_result"); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
+  if p != nil {
+    if err := p.writeField0(oprot); err != nil { return err }
+  }
+  if err := oprot.WriteFieldStop(); err != nil {
+    return thrift.PrependError("write field stop error: ", err) }
+  if err := oprot.WriteStructEnd(); err != nil {
+    return thrift.PrependError("write struct stop error: ", err) }
+  return nil
+}
+
+func (p *RpcServiceReadSingleSubsytemCgroupMetricResult) writeField0(oprot thrift.TProtocol) (err error) {
+  if p.IsSetSuccess() {
+    if err := oprot.WriteFieldBegin("success", thrift.STRING, 0); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field begin error 0:success: ", p), err) }
+    if err := oprot.WriteString(string(*p.Success)); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T.success (0) field write error: ", p), err) }
+    if err := oprot.WriteFieldEnd(); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field end error 0:success: ", p), err) }
+  }
+  return err
+}
+
+func (p *RpcServiceReadSingleSubsytemCgroupMetricResult) String() string {
+  if p == nil {
+    return "<nil>"
+  }
+  return fmt.Sprintf("RpcServiceReadSingleSubsytemCgroupMetricResult(%+v)", *p)
 }
 
 // Attributes:

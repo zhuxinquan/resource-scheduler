@@ -58,7 +58,52 @@ func (this CGroups) ReadAllCgroupMetric(path string) (string, error) {
 		return "", err
 	}
 	return string(s), nil
+}
 
+//获取某个Group指定子系统的指标
+func (this CGroups) ReadSingleSubsytemCgroupMetric(path, subSystem string) (string, error) {
+	var subSystemMetric SubSystemMetric
+	var existGroup bool = false
+	subSystemPath := Paths{}.JoinSubSystemPath(path, subSystem, CgroupMountPath)
+	exist, _ := common.PathExists(subSystemPath)
+	if exist {
+		existGroup = true
+		metric := make(map[string]string)
+		subSystemMetric.SubSystem = subSystem
+		files, err := ioutil.ReadDir(subSystemPath)
+		if err != nil {
+			seelog.Errorf("获取目录下文件失败，err: %v", err)
+		}
+		for _, f := range files {
+			if f.Name() == "cgroup.event_control" {
+				continue
+			}
+			filePath := fmt.Sprintf("%s/%s", subSystemPath, f.Name())
+			b, err := ioutil.ReadFile(filePath)
+			if err != nil {
+				metric[f.Name()] = fmt.Sprintf("%s", err)
+			} else {
+				content := string(b)
+				metric[f.Name()] = content
+			}
+		}
+		subSystemMetric.Metric = metric
+	}
+	if existGroup == false {
+		return "", fmt.Errorf("Group 不存在")
+	}
+	s, err := json.Marshal(subSystemMetric)
+	if err != nil {
+		seelog.Errorf("json字符串化失败")
+		return "", err
+	}
+	return string(s), nil
+}
+
+//获取所有Group列表
+func (this CGroups) GetGroupList() (string, error) {
+	//cmd := common.NewShell("")
+	return "", nil
 }
 
 //执行一个服务

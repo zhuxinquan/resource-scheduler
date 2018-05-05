@@ -3,6 +3,8 @@ namespace go cgroupRpc
 service RpcService {
     // 读取某个Group的所有指标
     string ReadAllCgroupMetric(1: string req);
+    // 读取单个Group的指定子系统的指标
+    string ReadSingleSubsytemCgroupMetric(1: string path, 2: string subSystem);
     // 执行某个命令
     string Exec(1: string req);
     // 设置CGroup单个指标
