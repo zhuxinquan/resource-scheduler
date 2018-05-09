@@ -40,6 +40,14 @@ func (rs *rpcService) GetGroupList() (res string, err error) {
 	return controller.CGroups{}.GetGroupList()
 }
 
+func (rs *rpcService) GroupAdd(path, subSystems string) (res string, err error) {
+	return controller.CGroups{}.NewGroup(path, subSystems)
+}
+
+func (rs *rpcService) GroupDelete(path string) (res string, err error) {
+	return controller.CGroups{}.GroupDelete(path)
+}
+
 var server *thrift.TSimpleServer
 
 func StartRpcServer() {

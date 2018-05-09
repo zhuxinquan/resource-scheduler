@@ -8,10 +8,9 @@ type SubSystemMetric struct {
 
 //执行EXEC的请求体
 type CGExecReq struct {
-	Path            string            `json:"path"`
-	SubSystemMetric []SubSystemMetric `json:"subSystemMetric"`
-	Cmd             string            `json:"cmd"`
-	User            string            `json:"user"`
+	Path string `json:"path"`
+	Cmd  string `json:"cmd"`
+	User string `json:"user"`
 }
 
 type SetMetricData struct {
@@ -35,4 +34,9 @@ type SysInfo struct {
 type GroupInfo struct {
 	GroupPath  string   `json:"groupPath"`
 	SubSystems []string `json:"subSystems"`
+}
+
+type WeightInfo struct {
+	GroupPath string `json:"groupPath"`
+	Weight    int    `json:"weight"`
 }

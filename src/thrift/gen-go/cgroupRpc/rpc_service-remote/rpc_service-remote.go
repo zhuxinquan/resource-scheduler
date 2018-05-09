@@ -28,6 +28,8 @@ func Usage() {
   fmt.Fprintln(os.Stderr, "  string GetSysInfo()")
   fmt.Fprintln(os.Stderr, "  string GetCpuAndMemStats()")
   fmt.Fprintln(os.Stderr, "  string GetGroupList()")
+  fmt.Fprintln(os.Stderr, "  string GroupAdd(string path, string subSystems)")
+  fmt.Fprintln(os.Stderr, "  string GroupDelete(string path)")
   fmt.Fprintln(os.Stderr)
   os.Exit(0)
 }
@@ -186,6 +188,28 @@ func main() {
       flag.Usage()
     }
     fmt.Print(client.GetGroupList())
+    fmt.Print("\n")
+    break
+  case "GroupAdd":
+    if flag.NArg() - 1 != 2 {
+      fmt.Fprintln(os.Stderr, "GroupAdd requires 2 args")
+      flag.Usage()
+    }
+    argvalue0 := flag.Arg(1)
+    value0 := argvalue0
+    argvalue1 := flag.Arg(2)
+    value1 := argvalue1
+    fmt.Print(client.GroupAdd(value0, value1))
+    fmt.Print("\n")
+    break
+  case "GroupDelete":
+    if flag.NArg() - 1 != 1 {
+      fmt.Fprintln(os.Stderr, "GroupDelete requires 1 args")
+      flag.Usage()
+    }
+    argvalue0 := flag.Arg(1)
+    value0 := argvalue0
+    fmt.Print(client.GroupDelete(value0))
     fmt.Print("\n")
     break
   case "":

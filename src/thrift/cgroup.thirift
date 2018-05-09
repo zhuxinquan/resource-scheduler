@@ -15,4 +15,7 @@ service RpcService {
     string GetCpuAndMemStats()
     // 获取当前有哪些Group，仅取各个子系统rs路径下的group
     string GetGroupList()
+    // 创建Group
+    string GroupAdd(1:string path, 2: string subSystems)
+    string GroupDelete(1: string path)
 }

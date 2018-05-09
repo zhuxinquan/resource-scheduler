@@ -31,6 +31,13 @@ type RpcService interface {
   GetSysInfo() (r string, err error)
   GetCpuAndMemStats() (r string, err error)
   GetGroupList() (r string, err error)
+  // Parameters:
+  //  - Path
+  //  - SubSystems
+  GroupAdd(path string, subSystems string) (r string, err error)
+  // Parameters:
+  //  - Path
+  GroupDelete(path string) (r string, err error)
 }
 
 type RpcServiceClient struct {
@@ -584,6 +591,160 @@ func (p *RpcServiceClient) recvGetGroupList() (value string, err error) {
   return
 }
 
+// Parameters:
+//  - Path
+//  - SubSystems
+func (p *RpcServiceClient) GroupAdd(path string, subSystems string) (r string, err error) {
+  if err = p.sendGroupAdd(path, subSystems); err != nil { return }
+  return p.recvGroupAdd()
+}
+
+func (p *RpcServiceClient) sendGroupAdd(path string, subSystems string)(err error) {
+  oprot := p.OutputProtocol
+  if oprot == nil {
+    oprot = p.ProtocolFactory.GetProtocol(p.Transport)
+    p.OutputProtocol = oprot
+  }
+  p.SeqId++
+  if err = oprot.WriteMessageBegin("GroupAdd", thrift.CALL, p.SeqId); err != nil {
+      return
+  }
+  args := RpcServiceGroupAddArgs{
+  Path : path,
+  SubSystems : subSystems,
+  }
+  if err = args.Write(oprot); err != nil {
+      return
+  }
+  if err = oprot.WriteMessageEnd(); err != nil {
+      return
+  }
+  return oprot.Flush()
+}
+
+
+func (p *RpcServiceClient) recvGroupAdd() (value string, err error) {
+  iprot := p.InputProtocol
+  if iprot == nil {
+    iprot = p.ProtocolFactory.GetProtocol(p.Transport)
+    p.InputProtocol = iprot
+  }
+  method, mTypeId, seqId, err := iprot.ReadMessageBegin()
+  if err != nil {
+    return
+  }
+  if method != "GroupAdd" {
+    err = thrift.NewTApplicationException(thrift.WRONG_METHOD_NAME, "GroupAdd failed: wrong method name")
+    return
+  }
+  if p.SeqId != seqId {
+    err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "GroupAdd failed: out of sequence response")
+    return
+  }
+  if mTypeId == thrift.EXCEPTION {
+    error14 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+    var error15 error
+    error15, err = error14.Read(iprot)
+    if err != nil {
+      return
+    }
+    if err = iprot.ReadMessageEnd(); err != nil {
+      return
+    }
+    err = error15
+    return
+  }
+  if mTypeId != thrift.REPLY {
+    err = thrift.NewTApplicationException(thrift.INVALID_MESSAGE_TYPE_EXCEPTION, "GroupAdd failed: invalid message type")
+    return
+  }
+  result := RpcServiceGroupAddResult{}
+  if err = result.Read(iprot); err != nil {
+    return
+  }
+  if err = iprot.ReadMessageEnd(); err != nil {
+    return
+  }
+  value = result.GetSuccess()
+  return
+}
+
+// Parameters:
+//  - Path
+func (p *RpcServiceClient) GroupDelete(path string) (r string, err error) {
+  if err = p.sendGroupDelete(path); err != nil { return }
+  return p.recvGroupDelete()
+}
+
+func (p *RpcServiceClient) sendGroupDelete(path string)(err error) {
+  oprot := p.OutputProtocol
+  if oprot == nil {
+    oprot = p.ProtocolFactory.GetProtocol(p.Transport)
+    p.OutputProtocol = oprot
+  }
+  p.SeqId++
+  if err = oprot.WriteMessageBegin("GroupDelete", thrift.CALL, p.SeqId); err != nil {
+      return
+  }
+  args := RpcServiceGroupDeleteArgs{
+  Path : path,
+  }
+  if err = args.Write(oprot); err != nil {
+      return
+  }
+  if err = oprot.WriteMessageEnd(); err != nil {
+      return
+  }
+  return oprot.Flush()
+}
+
+
+func (p *RpcServiceClient) recvGroupDelete() (value string, err error) {
+  iprot := p.InputProtocol
+  if iprot == nil {
+    iprot = p.ProtocolFactory.GetProtocol(p.Transport)
+    p.InputProtocol = iprot
+  }
+  method, mTypeId, seqId, err := iprot.ReadMessageBegin()
+  if err != nil {
+    return
+  }
+  if method != "GroupDelete" {
+    err = thrift.NewTApplicationException(thrift.WRONG_METHOD_NAME, "GroupDelete failed: wrong method name")
+    return
+  }
+  if p.SeqId != seqId {
+    err = thrift.NewTApplicationException(thrift.BAD_SEQUENCE_ID, "GroupDelete failed: out of sequence response")
+    return
+  }
+  if mTypeId == thrift.EXCEPTION {
+    error16 := thrift.NewTApplicationException(thrift.UNKNOWN_APPLICATION_EXCEPTION, "Unknown Exception")
+    var error17 error
+    error17, err = error16.Read(iprot)
+    if err != nil {
+      return
+    }
+    if err = iprot.ReadMessageEnd(); err != nil {
+      return
+    }
+    err = error17
+    return
+  }
+  if mTypeId != thrift.REPLY {
+    err = thrift.NewTApplicationException(thrift.INVALID_MESSAGE_TYPE_EXCEPTION, "GroupDelete failed: invalid message type")
+    return
+  }
+  result := RpcServiceGroupDeleteResult{}
+  if err = result.Read(iprot); err != nil {
+    return
+  }
+  if err = iprot.ReadMessageEnd(); err != nil {
+    return
+  }
+  value = result.GetSuccess()
+  return
+}
+
 
 type RpcServiceProcessor struct {
   processorMap map[string]thrift.TProcessorFunction
@@ -605,15 +766,17 @@ func (p *RpcServiceProcessor) ProcessorMap() map[string]thrift.TProcessorFunctio
 
 func NewRpcServiceProcessor(handler RpcService) *RpcServiceProcessor {
 
-  self14 := &RpcServiceProcessor{handler:handler, processorMap:make(map[string]thrift.TProcessorFunction)}
-  self14.processorMap["ReadAllCgroupMetric"] = &rpcServiceProcessorReadAllCgroupMetric{handler:handler}
-  self14.processorMap["ReadSingleSubsytemCgroupMetric"] = &rpcServiceProcessorReadSingleSubsytemCgroupMetric{handler:handler}
-  self14.processorMap["Exec"] = &rpcServiceProcessorExec{handler:handler}
-  self14.processorMap["SetMetric"] = &rpcServiceProcessorSetMetric{handler:handler}
-  self14.processorMap["GetSysInfo"] = &rpcServiceProcessorGetSysInfo{handler:handler}
-  self14.processorMap["GetCpuAndMemStats"] = &rpcServiceProcessorGetCpuAndMemStats{handler:handler}
-  self14.processorMap["GetGroupList"] = &rpcServiceProcessorGetGroupList{handler:handler}
-return self14
+  self18 := &RpcServiceProcessor{handler:handler, processorMap:make(map[string]thrift.TProcessorFunction)}
+  self18.processorMap["ReadAllCgroupMetric"] = &rpcServiceProcessorReadAllCgroupMetric{handler:handler}
+  self18.processorMap["ReadSingleSubsytemCgroupMetric"] = &rpcServiceProcessorReadSingleSubsytemCgroupMetric{handler:handler}
+  self18.processorMap["Exec"] = &rpcServiceProcessorExec{handler:handler}
+  self18.processorMap["SetMetric"] = &rpcServiceProcessorSetMetric{handler:handler}
+  self18.processorMap["GetSysInfo"] = &rpcServiceProcessorGetSysInfo{handler:handler}
+  self18.processorMap["GetCpuAndMemStats"] = &rpcServiceProcessorGetCpuAndMemStats{handler:handler}
+  self18.processorMap["GetGroupList"] = &rpcServiceProcessorGetGroupList{handler:handler}
+  self18.processorMap["GroupAdd"] = &rpcServiceProcessorGroupAdd{handler:handler}
+  self18.processorMap["GroupDelete"] = &rpcServiceProcessorGroupDelete{handler:handler}
+return self18
 }
 
 func (p *RpcServiceProcessor) Process(iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
@@ -624,12 +787,12 @@ func (p *RpcServiceProcessor) Process(iprot, oprot thrift.TProtocol) (success bo
   }
   iprot.Skip(thrift.STRUCT)
   iprot.ReadMessageEnd()
-  x15 := thrift.NewTApplicationException(thrift.UNKNOWN_METHOD, "Unknown function " + name)
+  x19 := thrift.NewTApplicationException(thrift.UNKNOWN_METHOD, "Unknown function " + name)
   oprot.WriteMessageBegin(name, thrift.EXCEPTION, seqId)
-  x15.Write(oprot)
+  x19.Write(oprot)
   oprot.WriteMessageEnd()
   oprot.Flush()
-  return false, x15
+  return false, x19
 
 }
 
@@ -952,6 +1115,102 @@ var retval string
     result.Success = &retval
 }
   if err2 = oprot.WriteMessageBegin("GetGroupList", thrift.REPLY, seqId); err2 != nil {
+    err = err2
+  }
+  if err2 = result.Write(oprot); err == nil && err2 != nil {
+    err = err2
+  }
+  if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+    err = err2
+  }
+  if err2 = oprot.Flush(); err == nil && err2 != nil {
+    err = err2
+  }
+  if err != nil {
+    return
+  }
+  return true, err
+}
+
+type rpcServiceProcessorGroupAdd struct {
+  handler RpcService
+}
+
+func (p *rpcServiceProcessorGroupAdd) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+  args := RpcServiceGroupAddArgs{}
+  if err = args.Read(iprot); err != nil {
+    iprot.ReadMessageEnd()
+    x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+    oprot.WriteMessageBegin("GroupAdd", thrift.EXCEPTION, seqId)
+    x.Write(oprot)
+    oprot.WriteMessageEnd()
+    oprot.Flush()
+    return false, err
+  }
+
+  iprot.ReadMessageEnd()
+  result := RpcServiceGroupAddResult{}
+var retval string
+  var err2 error
+  if retval, err2 = p.handler.GroupAdd(args.Path, args.SubSystems); err2 != nil {
+    x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing GroupAdd: " + err2.Error())
+    oprot.WriteMessageBegin("GroupAdd", thrift.EXCEPTION, seqId)
+    x.Write(oprot)
+    oprot.WriteMessageEnd()
+    oprot.Flush()
+    return true, err2
+  } else {
+    result.Success = &retval
+}
+  if err2 = oprot.WriteMessageBegin("GroupAdd", thrift.REPLY, seqId); err2 != nil {
+    err = err2
+  }
+  if err2 = result.Write(oprot); err == nil && err2 != nil {
+    err = err2
+  }
+  if err2 = oprot.WriteMessageEnd(); err == nil && err2 != nil {
+    err = err2
+  }
+  if err2 = oprot.Flush(); err == nil && err2 != nil {
+    err = err2
+  }
+  if err != nil {
+    return
+  }
+  return true, err
+}
+
+type rpcServiceProcessorGroupDelete struct {
+  handler RpcService
+}
+
+func (p *rpcServiceProcessorGroupDelete) Process(seqId int32, iprot, oprot thrift.TProtocol) (success bool, err thrift.TException) {
+  args := RpcServiceGroupDeleteArgs{}
+  if err = args.Read(iprot); err != nil {
+    iprot.ReadMessageEnd()
+    x := thrift.NewTApplicationException(thrift.PROTOCOL_ERROR, err.Error())
+    oprot.WriteMessageBegin("GroupDelete", thrift.EXCEPTION, seqId)
+    x.Write(oprot)
+    oprot.WriteMessageEnd()
+    oprot.Flush()
+    return false, err
+  }
+
+  iprot.ReadMessageEnd()
+  result := RpcServiceGroupDeleteResult{}
+var retval string
+  var err2 error
+  if retval, err2 = p.handler.GroupDelete(args.Path); err2 != nil {
+    x := thrift.NewTApplicationException(thrift.INTERNAL_ERROR, "Internal error processing GroupDelete: " + err2.Error())
+    oprot.WriteMessageBegin("GroupDelete", thrift.EXCEPTION, seqId)
+    x.Write(oprot)
+    oprot.WriteMessageEnd()
+    oprot.Flush()
+    return true, err2
+  } else {
+    result.Success = &retval
+}
+  if err2 = oprot.WriteMessageBegin("GroupDelete", thrift.REPLY, seqId); err2 != nil {
     err = err2
   }
   if err2 = result.Write(oprot); err == nil && err2 != nil {
@@ -2151,6 +2410,394 @@ func (p *RpcServiceGetGroupListResult) String() string {
     return "<nil>"
   }
   return fmt.Sprintf("RpcServiceGetGroupListResult(%+v)", *p)
+}
+
+// Attributes:
+//  - Path
+//  - SubSystems
+type RpcServiceGroupAddArgs struct {
+  Path string `thrift:"path,1" db:"path" json:"path"`
+  SubSystems string `thrift:"subSystems,2" db:"subSystems" json:"subSystems"`
+}
+
+func NewRpcServiceGroupAddArgs() *RpcServiceGroupAddArgs {
+  return &RpcServiceGroupAddArgs{}
+}
+
+
+func (p *RpcServiceGroupAddArgs) GetPath() string {
+  return p.Path
+}
+
+func (p *RpcServiceGroupAddArgs) GetSubSystems() string {
+  return p.SubSystems
+}
+func (p *RpcServiceGroupAddArgs) Read(iprot thrift.TProtocol) error {
+  if _, err := iprot.ReadStructBegin(); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
+  }
+
+
+  for {
+    _, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+    if err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T field %d read error: ", p, fieldId), err)
+    }
+    if fieldTypeId == thrift.STOP { break; }
+    switch fieldId {
+    case 1:
+      if err := p.ReadField1(iprot); err != nil {
+        return err
+      }
+    case 2:
+      if err := p.ReadField2(iprot); err != nil {
+        return err
+      }
+    default:
+      if err := iprot.Skip(fieldTypeId); err != nil {
+        return err
+      }
+    }
+    if err := iprot.ReadFieldEnd(); err != nil {
+      return err
+    }
+  }
+  if err := iprot.ReadStructEnd(); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+  }
+  return nil
+}
+
+func (p *RpcServiceGroupAddArgs)  ReadField1(iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(); err != nil {
+  return thrift.PrependError("error reading field 1: ", err)
+} else {
+  p.Path = v
+}
+  return nil
+}
+
+func (p *RpcServiceGroupAddArgs)  ReadField2(iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(); err != nil {
+  return thrift.PrependError("error reading field 2: ", err)
+} else {
+  p.SubSystems = v
+}
+  return nil
+}
+
+func (p *RpcServiceGroupAddArgs) Write(oprot thrift.TProtocol) error {
+  if err := oprot.WriteStructBegin("GroupAdd_args"); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
+  if p != nil {
+    if err := p.writeField1(oprot); err != nil { return err }
+    if err := p.writeField2(oprot); err != nil { return err }
+  }
+  if err := oprot.WriteFieldStop(); err != nil {
+    return thrift.PrependError("write field stop error: ", err) }
+  if err := oprot.WriteStructEnd(); err != nil {
+    return thrift.PrependError("write struct stop error: ", err) }
+  return nil
+}
+
+func (p *RpcServiceGroupAddArgs) writeField1(oprot thrift.TProtocol) (err error) {
+  if err := oprot.WriteFieldBegin("path", thrift.STRING, 1); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field begin error 1:path: ", p), err) }
+  if err := oprot.WriteString(string(p.Path)); err != nil {
+  return thrift.PrependError(fmt.Sprintf("%T.path (1) field write error: ", p), err) }
+  if err := oprot.WriteFieldEnd(); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field end error 1:path: ", p), err) }
+  return err
+}
+
+func (p *RpcServiceGroupAddArgs) writeField2(oprot thrift.TProtocol) (err error) {
+  if err := oprot.WriteFieldBegin("subSystems", thrift.STRING, 2); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field begin error 2:subSystems: ", p), err) }
+  if err := oprot.WriteString(string(p.SubSystems)); err != nil {
+  return thrift.PrependError(fmt.Sprintf("%T.subSystems (2) field write error: ", p), err) }
+  if err := oprot.WriteFieldEnd(); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field end error 2:subSystems: ", p), err) }
+  return err
+}
+
+func (p *RpcServiceGroupAddArgs) String() string {
+  if p == nil {
+    return "<nil>"
+  }
+  return fmt.Sprintf("RpcServiceGroupAddArgs(%+v)", *p)
+}
+
+// Attributes:
+//  - Success
+type RpcServiceGroupAddResult struct {
+  Success *string `thrift:"success,0" db:"success" json:"success,omitempty"`
+}
+
+func NewRpcServiceGroupAddResult() *RpcServiceGroupAddResult {
+  return &RpcServiceGroupAddResult{}
+}
+
+var RpcServiceGroupAddResult_Success_DEFAULT string
+func (p *RpcServiceGroupAddResult) GetSuccess() string {
+  if !p.IsSetSuccess() {
+    return RpcServiceGroupAddResult_Success_DEFAULT
+  }
+return *p.Success
+}
+func (p *RpcServiceGroupAddResult) IsSetSuccess() bool {
+  return p.Success != nil
+}
+
+func (p *RpcServiceGroupAddResult) Read(iprot thrift.TProtocol) error {
+  if _, err := iprot.ReadStructBegin(); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
+  }
+
+
+  for {
+    _, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+    if err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T field %d read error: ", p, fieldId), err)
+    }
+    if fieldTypeId == thrift.STOP { break; }
+    switch fieldId {
+    case 0:
+      if err := p.ReadField0(iprot); err != nil {
+        return err
+      }
+    default:
+      if err := iprot.Skip(fieldTypeId); err != nil {
+        return err
+      }
+    }
+    if err := iprot.ReadFieldEnd(); err != nil {
+      return err
+    }
+  }
+  if err := iprot.ReadStructEnd(); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+  }
+  return nil
+}
+
+func (p *RpcServiceGroupAddResult)  ReadField0(iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(); err != nil {
+  return thrift.PrependError("error reading field 0: ", err)
+} else {
+  p.Success = &v
+}
+  return nil
+}
+
+func (p *RpcServiceGroupAddResult) Write(oprot thrift.TProtocol) error {
+  if err := oprot.WriteStructBegin("GroupAdd_result"); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
+  if p != nil {
+    if err := p.writeField0(oprot); err != nil { return err }
+  }
+  if err := oprot.WriteFieldStop(); err != nil {
+    return thrift.PrependError("write field stop error: ", err) }
+  if err := oprot.WriteStructEnd(); err != nil {
+    return thrift.PrependError("write struct stop error: ", err) }
+  return nil
+}
+
+func (p *RpcServiceGroupAddResult) writeField0(oprot thrift.TProtocol) (err error) {
+  if p.IsSetSuccess() {
+    if err := oprot.WriteFieldBegin("success", thrift.STRING, 0); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field begin error 0:success: ", p), err) }
+    if err := oprot.WriteString(string(*p.Success)); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T.success (0) field write error: ", p), err) }
+    if err := oprot.WriteFieldEnd(); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field end error 0:success: ", p), err) }
+  }
+  return err
+}
+
+func (p *RpcServiceGroupAddResult) String() string {
+  if p == nil {
+    return "<nil>"
+  }
+  return fmt.Sprintf("RpcServiceGroupAddResult(%+v)", *p)
+}
+
+// Attributes:
+//  - Path
+type RpcServiceGroupDeleteArgs struct {
+  Path string `thrift:"path,1" db:"path" json:"path"`
+}
+
+func NewRpcServiceGroupDeleteArgs() *RpcServiceGroupDeleteArgs {
+  return &RpcServiceGroupDeleteArgs{}
+}
+
+
+func (p *RpcServiceGroupDeleteArgs) GetPath() string {
+  return p.Path
+}
+func (p *RpcServiceGroupDeleteArgs) Read(iprot thrift.TProtocol) error {
+  if _, err := iprot.ReadStructBegin(); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
+  }
+
+
+  for {
+    _, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+    if err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T field %d read error: ", p, fieldId), err)
+    }
+    if fieldTypeId == thrift.STOP { break; }
+    switch fieldId {
+    case 1:
+      if err := p.ReadField1(iprot); err != nil {
+        return err
+      }
+    default:
+      if err := iprot.Skip(fieldTypeId); err != nil {
+        return err
+      }
+    }
+    if err := iprot.ReadFieldEnd(); err != nil {
+      return err
+    }
+  }
+  if err := iprot.ReadStructEnd(); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+  }
+  return nil
+}
+
+func (p *RpcServiceGroupDeleteArgs)  ReadField1(iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(); err != nil {
+  return thrift.PrependError("error reading field 1: ", err)
+} else {
+  p.Path = v
+}
+  return nil
+}
+
+func (p *RpcServiceGroupDeleteArgs) Write(oprot thrift.TProtocol) error {
+  if err := oprot.WriteStructBegin("GroupDelete_args"); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
+  if p != nil {
+    if err := p.writeField1(oprot); err != nil { return err }
+  }
+  if err := oprot.WriteFieldStop(); err != nil {
+    return thrift.PrependError("write field stop error: ", err) }
+  if err := oprot.WriteStructEnd(); err != nil {
+    return thrift.PrependError("write struct stop error: ", err) }
+  return nil
+}
+
+func (p *RpcServiceGroupDeleteArgs) writeField1(oprot thrift.TProtocol) (err error) {
+  if err := oprot.WriteFieldBegin("path", thrift.STRING, 1); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field begin error 1:path: ", p), err) }
+  if err := oprot.WriteString(string(p.Path)); err != nil {
+  return thrift.PrependError(fmt.Sprintf("%T.path (1) field write error: ", p), err) }
+  if err := oprot.WriteFieldEnd(); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write field end error 1:path: ", p), err) }
+  return err
+}
+
+func (p *RpcServiceGroupDeleteArgs) String() string {
+  if p == nil {
+    return "<nil>"
+  }
+  return fmt.Sprintf("RpcServiceGroupDeleteArgs(%+v)", *p)
+}
+
+// Attributes:
+//  - Success
+type RpcServiceGroupDeleteResult struct {
+  Success *string `thrift:"success,0" db:"success" json:"success,omitempty"`
+}
+
+func NewRpcServiceGroupDeleteResult() *RpcServiceGroupDeleteResult {
+  return &RpcServiceGroupDeleteResult{}
+}
+
+var RpcServiceGroupDeleteResult_Success_DEFAULT string
+func (p *RpcServiceGroupDeleteResult) GetSuccess() string {
+  if !p.IsSetSuccess() {
+    return RpcServiceGroupDeleteResult_Success_DEFAULT
+  }
+return *p.Success
+}
+func (p *RpcServiceGroupDeleteResult) IsSetSuccess() bool {
+  return p.Success != nil
+}
+
+func (p *RpcServiceGroupDeleteResult) Read(iprot thrift.TProtocol) error {
+  if _, err := iprot.ReadStructBegin(); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T read error: ", p), err)
+  }
+
+
+  for {
+    _, fieldTypeId, fieldId, err := iprot.ReadFieldBegin()
+    if err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T field %d read error: ", p, fieldId), err)
+    }
+    if fieldTypeId == thrift.STOP { break; }
+    switch fieldId {
+    case 0:
+      if err := p.ReadField0(iprot); err != nil {
+        return err
+      }
+    default:
+      if err := iprot.Skip(fieldTypeId); err != nil {
+        return err
+      }
+    }
+    if err := iprot.ReadFieldEnd(); err != nil {
+      return err
+    }
+  }
+  if err := iprot.ReadStructEnd(); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
+  }
+  return nil
+}
+
+func (p *RpcServiceGroupDeleteResult)  ReadField0(iprot thrift.TProtocol) error {
+  if v, err := iprot.ReadString(); err != nil {
+  return thrift.PrependError("error reading field 0: ", err)
+} else {
+  p.Success = &v
+}
+  return nil
+}
+
+func (p *RpcServiceGroupDeleteResult) Write(oprot thrift.TProtocol) error {
+  if err := oprot.WriteStructBegin("GroupDelete_result"); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err) }
+  if p != nil {
+    if err := p.writeField0(oprot); err != nil { return err }
+  }
+  if err := oprot.WriteFieldStop(); err != nil {
+    return thrift.PrependError("write field stop error: ", err) }
+  if err := oprot.WriteStructEnd(); err != nil {
+    return thrift.PrependError("write struct stop error: ", err) }
+  return nil
+}
+
+func (p *RpcServiceGroupDeleteResult) writeField0(oprot thrift.TProtocol) (err error) {
+  if p.IsSetSuccess() {
+    if err := oprot.WriteFieldBegin("success", thrift.STRING, 0); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field begin error 0:success: ", p), err) }
+    if err := oprot.WriteString(string(*p.Success)); err != nil {
+    return thrift.PrependError(fmt.Sprintf("%T.success (0) field write error: ", p), err) }
+    if err := oprot.WriteFieldEnd(); err != nil {
+      return thrift.PrependError(fmt.Sprintf("%T write field end error 0:success: ", p), err) }
+  }
+  return err
+}
+
+func (p *RpcServiceGroupDeleteResult) String() string {
+  if p == nil {
+    return "<nil>"
+  }
+  return fmt.Sprintf("RpcServiceGroupDeleteResult(%+v)", *p)
 }
 
 

@@ -17,6 +17,81 @@ import (
 
 type CGroups struct{}
 
+func (this CGroups) GroupDelete(path string) (string, error) {
+	path = JoinCommonPath(path)
+	groupInfoStr, err := this.GetGroupList()
+	if err != nil {
+		seelog.Errorf("获取GroupInfo错误[%v]", err)
+		return "failed", err
+	}
+	groupInfos := make([]GroupInfo, 0)
+	err = json.Unmarshal([]byte(groupInfoStr), &groupInfos)
+	if err != nil {
+		return "failed", seelog.Errorf("获取GroupInfo错误Json反解失败[%v]", err)
+	}
+	subSystems := make([]string, 0)
+	for _, tmpInfos := range groupInfos {
+		seelog.Info(tmpInfos.GroupPath)
+		if tmpInfos.GroupPath == "/"+path {
+			subSystems = append(subSystems, tmpInfos.SubSystems...)
+		}
+	}
+	for _, s := range subSystems {
+		tmpPath := Paths{}.JoinSubSystemPath(path, s, CgroupMountPath)
+		exist, _ := common.PathExists(tmpPath)
+		if exist {
+			err := this.DeletePathDir(tmpPath)
+			if err != nil {
+				return "failed", seelog.Errorf("Group[%s/%s]删除失败[%v]", s, path, err)
+			}
+		}
+	}
+	return "success", nil
+}
+
+func (this CGroups) DeletePathDir(path string) error {
+	files, err := ioutil.ReadDir(path)
+	if err != nil {
+		return seelog.Errorf("ReadDir 错误[%v]", err)
+	}
+	for _, f := range files {
+		if f.IsDir() {
+			childDir := fmt.Sprintf("%s/%s", path, f.Name())
+			this.DeletePathDir(childDir)
+		}
+	}
+	pidByte, err := ioutil.ReadFile(fmt.Sprintf("%s/tasks", path))
+	pidStr := string(pidByte)
+	pids := strings.Join(strings.Split(pidStr, "\n"), " ")
+	if pids != "" {
+		err = this.KillPids(pids)
+		if err != nil {
+			return seelog.Errorf("Kill错误[%v]", err)
+		}
+	}
+	time.Sleep(500 * time.Microsecond)
+	exist, _ := common.PathExists(path)
+	if exist {
+		cmd := common.NewShell(fmt.Sprintf("rmdir %s", path))
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			return fmt.Errorf("RemoveAll Err[%v]Out[%s]", err, string(out))
+		}
+	}
+
+	return nil
+}
+
+func (this CGroups) KillPids(pids string) error {
+	cmdStr := fmt.Sprintf("kill -9 %s", pids)
+	cmd := common.NewShell(cmdStr)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return seelog.Errorf("Kill错误[%v][%s]", err, string(out))
+	}
+	return nil
+}
+
 //获取某个Group所有子系统的指标
 func (this CGroups) ReadAllCgroupMetric(path string) (string, error) {
 	subSystemsMetric := make([]SubSystemMetric, 0)
@@ -145,22 +220,25 @@ func (this CGroups) Exec(cGExecReq CGExecReq) error {
 	command := cGExecReq.Cmd
 	path := cGExecReq.Path
 	path = JoinCommonPath(path)
-	subSystemMetrics := cGExecReq.SubSystemMetric
-	userName := cGExecReq.User
+	groupInfoStr, err := this.GetGroupList()
+	if err != nil {
+		seelog.Errorf("获取GroupInfo错误[%v]", err)
+		return err
+	}
+	groupInfos := make([]GroupInfo, 0)
+	err = json.Unmarshal([]byte(groupInfoStr), &groupInfos)
+	if err != nil {
+		seelog.Errorf("获取GroupInfo错误Json反解失败[%v]", err)
+		return err
+	}
 	subSystems := make([]string, 0)
-	for _, s := range subSystemMetrics {
-		subSystems = append(subSystems, s.SubSystem)
+	for _, tmpInfos := range groupInfos {
+		seelog.Info(tmpInfos.GroupPath)
+		if tmpInfos.GroupPath == "/"+path {
+			subSystems = append(subSystems, tmpInfos.SubSystems...)
+		}
 	}
-	err := this.CreatGroup(subSystems, path)
-	if err != nil {
-		seelog.Errorf("创建Group失败, err：%v", err)
-		return err
-	}
-	err = Metrics{}.SetCGroupMetric(subSystemMetrics, path)
-	if err != nil {
-		seelog.Errorf("设置子系统参数失败, err：%v", err)
-		return err
-	}
+	userName := cGExecReq.User
 	pid, err := this.ExecCommand(command, userName)
 	if err != nil {
 		seelog.Errorf("执行Command失败, err:%v", err)
@@ -175,12 +253,13 @@ func (this CGroups) Exec(cGExecReq CGExecReq) error {
 }
 
 func (this CGroups) WritePidToTasks(pid int64, path string, subSystems []string) error {
-	tasksPath := fmt.Sprintf("%s/memory/rs/tasks", CgroupMountPath)
-	err := ioutil.WriteFile(tasksPath, []byte(strconv.Itoa(int(pid))), os.ModeAppend)
-	if err != nil {
-		seelog.Errorf("通用mem子系统写入PID失败, err:%v", err)
-		return err
-	}
+	seelog.Info("开始写入PId:", pid, "path:", path, "subSystems:", subSystems)
+	//tasksPath := fmt.Sprintf("%s/memory/rs/tasks", CgroupMountPath)
+	//err := ioutil.WriteFile(tasksPath, []byte(strconv.Itoa(int(pid))), os.ModeAppend)
+	//if err != nil {
+	//	seelog.Errorf("通用mem子系统写入PID失败, err:%v", err)
+	//	return err
+	//}
 	for _, s := range subSystems {
 		tasksPath := fmt.Sprintf("%s/%s/%s/tasks", CgroupMountPath, s, path)
 		err := ioutil.WriteFile(tasksPath, []byte(strconv.Itoa(int(pid))), os.ModeAppend)
@@ -192,17 +271,43 @@ func (this CGroups) WritePidToTasks(pid int64, path string, subSystems []string)
 	return nil
 }
 
-func (this CGroups) CreatGroup(subSystems []string, path string) error {
+func (this CGroups) NewGroup(path, subSystems string) (string, error) {
+	path = JoinCommonPath(path)
+	subs := strings.Split(subSystems, ",")
+	err := this.CheckSubSystem(subs)
+	if err != nil {
+		return "failed", err
+	}
+	return this.CreatGroup(subs, path)
+}
+
+func (this CGroups) CheckSubSystem(subs []string) error {
+	for _, s := range subs {
+		exist := false
+		for _, tmp := range CGroupSubSystemList {
+			if s == tmp {
+				exist = true
+				break
+			}
+		}
+		if exist == false {
+			return fmt.Errorf("子系统[%s]不存在", s)
+		}
+	}
+	return nil
+}
+
+func (this CGroups) CreatGroup(subSystems []string, path string) (string, error) {
 	for _, s := range subSystems {
 		path := Paths{}.JoinSubSystemPath(path, s, CgroupMountPath)
 		err := os.MkdirAll(path, os.ModePerm)
 		if err != nil {
 			seelog.Errorf("创建Group失败, path: %s, err:%s", path, err)
-			return err
+			return "failed", err
 		}
 		seelog.Infof("创建Group完成, path: %s", path)
 	}
-	return nil
+	return "success", nil
 }
 
 func (this CGroups) ExecCommand(command, userName string) (int64, error) {
@@ -213,7 +318,6 @@ func (this CGroups) ExecCommand(command, userName string) (int64, error) {
 		} else if uid, err := strconv.Atoi(userInfo.Uid); err != nil {
 			return -1, err
 		} else {
-			fmt.Println(uid)
 			cmd.SysProcAttr = &syscall.SysProcAttr{}
 			cmd.SysProcAttr.Credential = &syscall.Credential{Uid: uint32(uid), Gid: uint32(uid)}
 		}

@@ -16,7 +16,6 @@ func (this SysInfos) GetSysInfo() (string, error) {
 	//CPU us
 	cmd := common.NewShell("top -bn 1 |grep Cpu | cut -d \",\" -f 1 | cut -d \":\" -f 2")
 	r, err := cmd.CombinedOutput()
-	seelog.Info("cpu us:", string(r))
 	if err != nil {
 		seelog.Errorf("获取CPU us错误[%v]", err)
 		return "", err
@@ -28,7 +27,6 @@ func (this SysInfos) GetSysInfo() (string, error) {
 	//CPU sy
 	cmd = common.NewShell("top -bn 1 | grep Cpu | cut -d \",\" -f 2")
 	r, err = cmd.CombinedOutput()
-	seelog.Info("cpu sy:", string(r))
 	if err != nil {
 		seelog.Errorf("获取CPU sy错误[%v]", err)
 		return "", err
@@ -40,7 +38,6 @@ func (this SysInfos) GetSysInfo() (string, error) {
 	//MEM and Swap Total
 	cmd = common.NewShell("top -bn 1 |grep Mem | cut -d \",\" -f 1 | cut -d \":\" -f 2")
 	r, err = cmd.CombinedOutput()
-	seelog.Info("cpu Total:", string(r))
 	if err != nil {
 		seelog.Errorf("获取CPU us错误[%v]", err)
 		return "", err
@@ -101,8 +98,8 @@ func (this SysInfos) GetSysInfo() (string, error) {
 	//Swap and Mem used total - free = used
 	sysInfo.MemFree = sysInfo.MemTotal - sysInfo.MemUsed
 	sysInfo.SwapFree = sysInfo.SwapTotal - sysInfo.SwapUsed
-	sysInfo.MemRate = fmt.Sprintf("%.3f", float64(sysInfo.MemUsed)/float64(sysInfo.MemTotal))
-	sysInfo.SwapRate = fmt.Sprintf("%.3f", float64(sysInfo.SwapUsed)/float64(sysInfo.SwapTotal))
+	sysInfo.MemRate = fmt.Sprintf("%.1f", float64(sysInfo.MemUsed)/float64(sysInfo.MemTotal)*100)
+	sysInfo.SwapRate = fmt.Sprintf("%.1f", float64(sysInfo.SwapUsed)/float64(sysInfo.SwapTotal)*100)
 	result, err := json.Marshal(sysInfo)
 	return string(result), nil
 }
