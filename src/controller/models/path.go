@@ -20,6 +20,7 @@ func (this Paths) JoinSubSystemPath(path, subSystem, cgroupMountPath string) str
 //给Group路径上添加统一路径 rs, 最终返回结果不包含 '/'
 func JoinCommonPath(path string) string {
 	if !strings.HasPrefix(path, "/rs/") && !strings.HasPrefix(path, "rs/") {
+		path = strings.Replace(path, "/", "---", -1)
 		path = strings.TrimPrefix(path, "/")
 		path = fmt.Sprintf("%s/%s", COMMON_CGROUP_PATH, path)
 		strings.TrimSuffix(path, "/")

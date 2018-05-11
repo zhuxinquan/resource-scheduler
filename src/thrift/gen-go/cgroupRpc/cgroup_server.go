@@ -40,12 +40,16 @@ func (rs *rpcService) GetGroupList() (res string, err error) {
 	return controller.CGroups{}.GetGroupList()
 }
 
-func (rs *rpcService) GroupAdd(path, subSystems string) (res string, err error) {
-	return controller.CGroups{}.NewGroup(path, subSystems)
+func (rs *rpcService) GroupAdd(path, subSystems, weight string) (res string, err error) {
+	return controller.CGroups{}.NewGroup(path, subSystems, weight)
 }
 
 func (rs *rpcService) GroupDelete(path string) (res string, err error) {
 	return controller.CGroups{}.GroupDelete(path)
+}
+
+func (rs *rpcService) GetProcessInfo() (res string, err error) {
+	return "", nil
 }
 
 var server *thrift.TSimpleServer

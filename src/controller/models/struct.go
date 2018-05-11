@@ -36,7 +36,11 @@ type GroupInfo struct {
 	SubSystems []string `json:"subSystems"`
 }
 
-type WeightInfo struct {
-	GroupPath string `json:"groupPath"`
-	Weight    int    `json:"weight"`
+type ProcessInfo struct {
+	Pid   string `json:"pid"`
+	User  string `json:"user"`
+	State string `json:"state"`
+	Cpu   string `json:"cpu"`
+	Mem   string `json:"mem"`
+	Cmd   string `json:"cmd"`
 }

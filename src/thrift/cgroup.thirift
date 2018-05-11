@@ -11,11 +11,13 @@ service RpcService {
     string SetMetric(1: string req);
     // 获取CPU和内存使用情况
     string GetSysInfo();
+    // 获取进程信息
+    string GetProcessInfo();
     // 获取系统当前CPU和MEM状态
     string GetCpuAndMemStats()
     // 获取当前有哪些Group，仅取各个子系统rs路径下的group
     string GetGroupList()
     // 创建Group
-    string GroupAdd(1:string path, 2: string subSystems)
+    string GroupAdd(1:string path, 2: string subSystems, 3: string weight)
     string GroupDelete(1: string path)
 }

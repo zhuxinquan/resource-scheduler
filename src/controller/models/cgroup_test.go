@@ -1,8 +1,8 @@
 package models
 
 import (
-	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -16,28 +16,15 @@ import (
 //	time.Sleep(200 * time.Second)
 //}
 
-func TestCGroups_Exec(t *testing.T) {
-	CgroupMountPath = "/sys/fs/cgroup"
-	var cGExec CGExecReq
-	cGExec.User = ""
-	cGExec.Path = "/agent"
-	cGExec.Cmd = "/home/zxq/tmptest/cgroup/a.out"
-	subSystemMetrics := make([]SubSystemMetric, 0)
-	metrics := make(map[string]string)
-	metrics["cpu.cfs_quota_us"] = "2000"
-	metrics["cpu.cfs_period_us"] = "10000"
-	subSystemMetrics = append(subSystemMetrics, SubSystemMetric{
-		SubSystem: "cpu",
-		Metric:    metrics,
-	})
-	cGExec.SubSystemMetric = subSystemMetrics
-	//CGroups{}.Exec(cGExec)
-	//time.Sleep(1000* time.Second)
-	b, _ := json.Marshal(cGExec)
-	fmt.Println(string(b))
+func TestCGroups_GetGroupList(t *testing.T) {
+	s := "1  2   3"
+	sl := strings.Split(s, " ")
+	fmt.Println(len(sl))
+	fmt.Println(sl)
 }
 
-func TestCGroups_GetGroupList(t *testing.T) {
-	s, _ := CGroups{}.GetGroupList()
-	fmt.Println(s)
+func TestCGroups_GetProcessInfo(t *testing.T) {
+	CgroupMountPath = GetCgroupMountPath()
+	w := Weight{}.GetAllCpuWeight()
+	fmt.Println(w)
 }

@@ -17,6 +17,11 @@ func (this CGroups) GroupDelete(path string) (string, error) {
 	return models.CGroups{}.GroupDelete(path)
 }
 
+//获取所有进程信息top
+func (this CGroups) GetProcessInfo() (string, error) {
+	return models.CGroups{}.GetProcessInfo()
+}
+
 //获取某个Group指定子系统的指标
 func (this CGroups) ReadSingleSubsytemCgroupMetric(path, subSystem string) (string, error) {
 	return models.CGroups{}.ReadSingleSubsytemCgroupMetric(path, subSystem)
@@ -28,8 +33,8 @@ func (this CGroups) GetGroupList() (string, error) {
 }
 
 //创建Group
-func (this CGroups) NewGroup(path, subSystems string) (string, error) {
-	return models.CGroups{}.NewGroup(path, subSystems)
+func (this CGroups) NewGroup(path, subSystems, weight string) (string, error) {
+	return models.CGroups{}.NewGroup(path, subSystems, weight)
 }
 
 func (this CGroups) Exec(req string) (string, error) {

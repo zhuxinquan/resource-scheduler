@@ -26,9 +26,10 @@ func Usage() {
   fmt.Fprintln(os.Stderr, "  string Exec(string req)")
   fmt.Fprintln(os.Stderr, "  string SetMetric(string req)")
   fmt.Fprintln(os.Stderr, "  string GetSysInfo()")
+  fmt.Fprintln(os.Stderr, "  string GetProcessInfo()")
   fmt.Fprintln(os.Stderr, "  string GetCpuAndMemStats()")
   fmt.Fprintln(os.Stderr, "  string GetGroupList()")
-  fmt.Fprintln(os.Stderr, "  string GroupAdd(string path, string subSystems)")
+  fmt.Fprintln(os.Stderr, "  string GroupAdd(string path, string subSystems, string weight)")
   fmt.Fprintln(os.Stderr, "  string GroupDelete(string path)")
   fmt.Fprintln(os.Stderr)
   os.Exit(0)
@@ -174,6 +175,14 @@ func main() {
     fmt.Print(client.GetSysInfo())
     fmt.Print("\n")
     break
+  case "GetProcessInfo":
+    if flag.NArg() - 1 != 0 {
+      fmt.Fprintln(os.Stderr, "GetProcessInfo requires 0 args")
+      flag.Usage()
+    }
+    fmt.Print(client.GetProcessInfo())
+    fmt.Print("\n")
+    break
   case "GetCpuAndMemStats":
     if flag.NArg() - 1 != 0 {
       fmt.Fprintln(os.Stderr, "GetCpuAndMemStats requires 0 args")
@@ -191,15 +200,17 @@ func main() {
     fmt.Print("\n")
     break
   case "GroupAdd":
-    if flag.NArg() - 1 != 2 {
-      fmt.Fprintln(os.Stderr, "GroupAdd requires 2 args")
+    if flag.NArg() - 1 != 3 {
+      fmt.Fprintln(os.Stderr, "GroupAdd requires 3 args")
       flag.Usage()
     }
     argvalue0 := flag.Arg(1)
     value0 := argvalue0
     argvalue1 := flag.Arg(2)
     value1 := argvalue1
-    fmt.Print(client.GroupAdd(value0, value1))
+    argvalue2 := flag.Arg(3)
+    value2 := argvalue2
+    fmt.Print(client.GroupAdd(value0, value1, value2))
     fmt.Print("\n")
     break
   case "GroupDelete":
