@@ -49,7 +49,7 @@ func (rs *rpcService) GroupDelete(path string) (res string, err error) {
 }
 
 func (rs *rpcService) GetProcessInfo() (res string, err error) {
-	return "", nil
+	return controller.CGroups{}.GetProcessInfo()
 }
 
 var server *thrift.TSimpleServer

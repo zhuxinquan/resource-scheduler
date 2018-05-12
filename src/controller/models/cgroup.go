@@ -196,11 +196,21 @@ func (this CGroups) GetGroupList() (string, error) {
 			continue
 		}
 		if value, ok := groupMap[sp[1]]; ok {
-			value = append(value, strings.Split(sp[0], ",")...)
+			tmpSubs := strings.Split(sp[0], ",")
+			for _, tmpV := range tmpSubs {
+				if tmpV != "cpuacct" {
+					value = append(value, tmpV)
+				}
+			}
 			groupMap[sp[1]] = value
 		} else {
 			value = make([]string, 0)
-			value = append(value, strings.Split(sp[0], ",")...)
+			tmpSubs := strings.Split(sp[0], ",")
+			for _, tmpV := range tmpSubs {
+				if tmpV != "cpuacct" {
+					value = append(value, tmpV)
+				}
+			}
 			groupMap[sp[1]] = value
 		}
 	}
@@ -305,7 +315,7 @@ func (this CGroups) CheckSubSystem(subs []string) error {
 //获取所有进程信息top
 func (this CGroups) GetProcessInfo() (string, error) {
 	processInfos := make([]ProcessInfo, 0)
-	cmd := common.NewShell("top -bcwn 1 > /tmp/topoutput")
+	cmd := common.NewShell("top -bcn 1 -w 1000 > /tmp/topoutput")
 	_, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", seelog.Errorf("top 执行失败")
